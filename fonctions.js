@@ -107,31 +107,28 @@ function verifierExamen(rl, callbackMenu) {
         titres.add(question.titre);
     }
 
-    // Demander le nom du fichier GIFT et le chemin de sauvegarde
+    // Demander le nom du fichier GIFT
     rl.question("\nEntrez le nom du fichier GIFT (sans extension) : ", (nomFichier) => {
         if (!nomFichier.trim()) { // Vérifier si le nom est vide
             console.log("\nLe nom du fichier ne peut pas être vide. Veuillez entrer un nom valide.");
             return verifierExamen(rl, callbackMenu); // Redemander le nom du fichier
         }
 
-        rl.question("\nEntrez le chemin de sauvegarde (ou laissez vide pour l'emplacement actuel) : ", (cheminFichier) => {
-            // Utiliser l'emplacement actuel si le chemin est vide
-            const cheminComplet = cheminFichier ? path.join(cheminFichier, `${nomFichier}.gift`) : `./examens/${nomFichier}.gift`;
+        const cheminComplet = `./${nomFichier}.gift`;
 
-            // Vérifier si le fichier existe déjà
-            if (fs.existsSync(cheminComplet)) {
-                rl.question(`\nLe fichier '${cheminComplet}' existe déjà. Voulez-vous l'écraser ? (oui/non) : `, (reponse) => {
-                    if (reponse.toLowerCase() === 'oui') {
-                        sauvegarderExamen(cheminComplet, callbackMenu);
-                    } else {
-                        console.log("\nCréation annulée. Vous pouvez choisir un autre nom ou chemin.");
-                        callbackMenu();
-                    }
-                });
-            } else {
-                sauvegarderExamen(cheminComplet, callbackMenu);
-            }
-        });
+        // Vérifier si le fichier existe déjà
+        if (fs.existsSync(cheminComplet)) {
+            rl.question(`\nLe fichier '${cheminComplet}' existe déjà. Voulez-vous l'écraser ? (oui/non) : `, (reponse) => {
+                if (reponse.toLowerCase() === 'oui') {
+                    sauvegarderExamen(cheminComplet, callbackMenu);
+                } else {
+                    console.log("\nCréation annulée. Vous pouvez choisir un autre nom.");
+                    callbackMenu();
+                }
+            });
+        } else {
+            sauvegarderExamen(cheminComplet, callbackMenu);
+        }
     });
 }
 
@@ -158,6 +155,7 @@ function modifierQuestions(rl, callbackMenu) {
     console.log("1. Supprimer une question");
     console.log("2. Ajouter une question");
     console.log("3. Retourner à la vérification");
+    console.log("4. Quitter (annuler la création de l'examen)");
 
     rl.question("\nChoisissez une option : ", (choix) => {
         switch (choix) {
@@ -169,6 +167,10 @@ function modifierQuestions(rl, callbackMenu) {
                 break;
             case '3':
                 verifierExamen(rl, callbackMenu); // Recommence la vérification
+                break;
+            case '4':
+                console.log("\nCréation de l'examen annulée.");
+                callbackMenu();
                 break;
             default:
                 console.log("\nOption invalide.");
