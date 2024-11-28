@@ -11,7 +11,7 @@ function chargerQuestions(fichier) {
         // Parse chaque question et renvoie un tableau de questions valides
         const questions = questionsBrutes.map((bloc) => {
             const question = parserQuestion(bloc.trim());
-            return question; // renvoie la question si elle est valide
+            return question; // Renvoie la question si elle est valide
         }).filter(q => q); // Filtrer les entrées invalides (par exemple, questions mal formatées)
 
         return questions;
@@ -24,13 +24,7 @@ function chargerQuestions(fichier) {
 // Fonction pour parser une question individuelle
 function parserQuestion(bloc) {
     // Extraire le titre, l'énoncé, et les réponses (si présentes)
-
-
-    // Modifier l'expression régulière pour mieux capturer l'énoncé et gérer les espaces
     const titreEtEnonce = bloc.match(/::(.*?)::([^{}]+)(\s*{[\s\S]*})?/);
-
-
-
     if (!titreEtEnonce) return null; // Si la question est mal formatée, on l'ignore
 
     const titre = titreEtEnonce[1].trim(); // Titre de la question
@@ -40,23 +34,24 @@ function parserQuestion(bloc) {
     // Passer l'énoncé en plus des réponses à la fonction infererType
     const type = infererType(reponsesBrutes, enonce); // Identifier le type de question
 
+    let reponses = [];
+    if (type === "Correspondance") {
+        reponses = parserCorrespondance(reponsesBrutes);
+    } else if (type === "Choix Multiple" || type === "Vrai/Faux" || type === "Numérique") {
+        reponses = parserReponsesGenerales(reponsesBrutes);
+    }
+
     const result = {
         titre,
         enonce,
         type,
+        reponses,
         contenu: bloc.trim(), // Contenu complet de la question
     };
-
-
 
     return result;
 }
 
-
-
-
-
-// Fonction pour inférer le type de la question en fonction des réponses
 // Fonction pour inférer le type de la question en fonction des réponses
 function infererType(reponses, question) {
     if (!reponses) {
@@ -67,9 +62,14 @@ function infererType(reponses, question) {
         return "Question Ouverte"; // Si aucune réponse détectée
     }
 
+    // Vérification pour une question de type "Correspondance"
+    if (/=\s*.*\s*->\s*.*\s*/.test(reponses)) {
+        return "Correspondance"; // Correspondance
+    }
+
     // Vérification pour une question de type "Vrai/Faux"
     if (/TRUE|FALSE/.test(reponses)) {
-        return "Vrai/Faux"; // Vrai/Faux (Réponses de type TRUE ou FALSE)
+        return "Vrai/Faux"; // Vrai/Faux
     }
 
     // Vérification pour un choix multiple
@@ -79,16 +79,42 @@ function infererType(reponses, question) {
 
     // Vérification pour une réponse numérique (par exemple, {#42})
     if (/^{#\d+}/.test(reponses)) {
-        return "Numérique"; // Réponse Numérique (par exemple, {#42})
+        return "Numérique"; // Réponse Numérique
     }
 
     return "Inconnu"; // Si non reconnu
 }
 
+// Fonction pour parser les paires de correspondance
+function parserCorrespondance(reponsesBrutes) {
+    const paires = [];
+    const lignes = reponsesBrutes.replace(/[{}]/g, '').trim().split('\n'); // Supprime les accolades et divise en lignes
 
+    lignes.forEach((ligne) => {
+        const match = ligne.match(/=\s*(.*?)\s*->\s*(.*?)\s*(#.*)?$/); // Capture TexteGauche et TexteDroit
+        if (match) {
+            paires.push({
+                gauche: match[1].trim(),
+                droit: match[2].trim()
+            });
+        }
+    });
 
+    return paires;
+}
 
+// Fonction générique pour parser les réponses (choix multiple, vrai/faux, etc.)
+function parserReponsesGenerales(reponsesBrutes) {
+    const reponses = [];
+    const lignes = reponsesBrutes.replace(/[{}]/g, '').trim().split('\n'); // Supprime les accolades et divise en lignes
 
+    lignes.forEach((ligne) => {
+        const correct = ligne.startsWith('=');
+        const texte = ligne.replace(/^=|~/, '').trim();
+        reponses.push({ texte, correct });
+    });
 
+    return reponses;
+}
 
 module.exports = { chargerQuestions };

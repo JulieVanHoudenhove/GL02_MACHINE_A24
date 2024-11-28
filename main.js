@@ -1,5 +1,11 @@
 const readline = require('readline');
-const { rechercherQuestion } = require('./fonctions');
+const fs = require('fs');
+const { rechercherQuestion, creerExamen } = require('./fonctions');
+
+// Supprimer le fichier temporaire au démarrage
+if (fs.existsSync('./temp_examen.json')) {
+    fs.unlinkSync('./temp_examen.json');
+}
 
 // Interface utilisateur
 const rl = readline.createInterface({
@@ -11,14 +17,18 @@ const rl = readline.createInterface({
 function afficherMenu() {
     console.log("\n--- Menu Principal ---");
     console.log("1. Rechercher une question");
-    console.log("2. Quitter");
+    console.log("2. Créer un examen");
+    console.log("3. Quitter");
 
     rl.question("\nChoisissez une option : ", (choix) => {
         switch (choix) {
             case '1':
-                rechercherQuestion(rl, afficherMenu); // Appelle la fonction dans fonctions.js
+                rechercherQuestion(rl, afficherMenu);
                 break;
             case '2':
+                creerExamen(rl, afficherMenu);
+                break;
+            case '3':
                 console.log("\nMerci d'avoir utilisé l'utilitaire. À bientôt !");
                 rl.close();
                 break;
