@@ -23,32 +23,72 @@ function chargerQuestions(fichier) {
 
 // Fonction pour parser une question individuelle
 function parserQuestion(bloc) {
-    // Extrait l'énoncé et les réponses de chaque bloc
-    const titreEtEnonce = bloc.match(/::(.*?)::(.*?)\s*(\{[\s\S]* \})?/);
-    if (!titreEtEnonce) return null; // Si la question est mal formatée, on l ignore
+    // Extraire le titre, l'énoncé, et les réponses (si présentes)
 
-    const titre = titreEtEnonce[1].trim();
-    const enonce = titreEtEnonce[2].trim();
-    const reponsesBrutes = titreEtEnonce[3] ? titreEtEnonce[3].trim() : ""; // Réponses entre { } si présentes
 
-    const type = infererType(reponsesBrutes);
+    // Modifier l'expression régulière pour mieux capturer l'énoncé et gérer les espaces
+    const titreEtEnonce = bloc.match(/::(.*?)::([^{}]+)(\s*{[\s\S]*})?/);
 
-    return {
+
+
+    if (!titreEtEnonce) return null; // Si la question est mal formatée, on l'ignore
+
+    const titre = titreEtEnonce[1].trim(); // Titre de la question
+    const enonce = titreEtEnonce[2] ? titreEtEnonce[2].trim() : ""; // Énoncé de la question
+    const reponsesBrutes = titreEtEnonce[3] ? titreEtEnonce[3].trim() : ""; // Réponses entre `{ }`
+
+    // Passer l'énoncé en plus des réponses à la fonction infererType
+    const type = infererType(reponsesBrutes, enonce); // Identifier le type de question
+
+    const result = {
         titre,
         enonce,
         type,
-        contenu: bloc.trim()
-};
+        contenu: bloc.trim(), // Contenu complet de la question
+    };
+
+
+
+    return result;
 }
 
+
+
+
+
 // Fonction pour inférer le type de la question en fonction des réponses
-function infererType(reponses) {
-    if (!reponses) return "Question Ouverte"; // Si aucune réponse, c'est une question ouverte
-    if (reponses.includes('TRUE') || reponses.includes('FALSE')) return "Vrai/Faux"; // Vrai/Faux
-    if (reponses.includes('=')) return "Choix Multiple"; // Choix Multiple
-    if (reponses.includes('#')) return "Numérique"; // Réponse Numérique
-    if (reponses.includes('[')) return "Mot Manquant"; // Mot Manquant
-    return "Inconnu"; // Par défaut, on marque comme inconnu
+// Fonction pour inférer le type de la question en fonction des réponses
+function infererType(reponses, question) {
+    if (!reponses) {
+        // Vérifier si la question contient un mot manquant (indiqué par des crochets [])
+        if (/\[.*?\]/.test(question)) {
+            return "Mot Manquant"; // Mot Manquant (par exemple, [Est])
+        }
+        return "Question Ouverte"; // Si aucune réponse détectée
+    }
+
+    // Vérification pour une question de type "Vrai/Faux"
+    if (/TRUE|FALSE/.test(reponses)) {
+        return "Vrai/Faux"; // Vrai/Faux (Réponses de type TRUE ou FALSE)
+    }
+
+    // Vérification pour un choix multiple
+    if (reponses.includes('=')) {
+        return "Choix Multiple"; // Choix Multiple
+    }
+
+    // Vérification pour une réponse numérique (par exemple, {#42})
+    if (/^{#\d+}/.test(reponses)) {
+        return "Numérique"; // Réponse Numérique (par exemple, {#42})
+    }
+
+    return "Inconnu"; // Si non reconnu
 }
+
+
+
+
+
+
 
 module.exports = { chargerQuestions };

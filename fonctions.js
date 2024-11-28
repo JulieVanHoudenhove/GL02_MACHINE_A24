@@ -2,7 +2,9 @@ const { chargerQuestions } = require('./parser');
 
 // Fonction pour rechercher des questions
 function rechercherQuestion(rl, callbackMenu) {
-    const questions = chargerQuestions('./questions.gift'); // Charger les questions via le parser
+    const questions = chargerQuestions('./questions.gift');
+    console.log(questions.map(q => ({ titre: q.titre, type: q.type })));
+
     console.log("\n--- Recherche de questions ---");
 
     console.log("\nChoisissez un critère de recherche :");
