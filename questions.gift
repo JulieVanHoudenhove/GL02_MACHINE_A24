@@ -1,0 +1,11 @@
+::Question 1::Quelle est la couleur du ciel ? {
+=Bleu#Bonne réponse
+~Rouge#Mauvaise réponse
+~Vert#Mauvaise réponse
+}
+::Question 2::La Terre est-elle ronde ? {
+TRUE#Bonne réponse
+}
+::Question 4::Le soleil se lève à l'[Est] et se couche à l'[Ouest].
+::Question 5::Combien font 7 multiplié par 6 ? {#42}
+::Question 6::Décrivez l'importance de la photosynthèse dans la nature.
