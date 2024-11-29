@@ -200,8 +200,88 @@ function supprimerQuestion(rl, callbackMenu) {
 
 
 
+// Fonction pour simuler la passation d'un test
+function simulerPassation(rl, callbackMenu) {
+    // Charger les questions depuis le fichier GIFT
+    const questions = chargerQuestions('./examen.gift');
+    if (questions.length === 0) {
+        // Message si aucun examen n'est trouvé
+        console.log("\nAucun examen trouvé. Veuillez d'abord créer un examen.");
+        callbackMenu();
+        return;
+    }
 
+    let currentQuestionIndex = 0; // Index de la question actuelle
+    let responses = []; // Liste pour stocker les réponses de l'utilisateur
 
+    // Fonction pour poser une question
+    function askQuestion() {
+        if (currentQuestionIndex < questions.length) {
+            const question = questions[currentQuestionIndex];
+            // Afficher la question et son contenu
+            console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.titre}`);
+            console.log(question.contenu);
+
+            // Demander une réponse à l'utilisateur
+            rl.question("\nVotre réponse : ", (reponse) => {
+                // Ajouter la réponse de l'utilisateur à la liste des réponses
+                responses.push({ question, reponse });
+                currentQuestionIndex++; // Passer à la question suivante
+                askQuestion(); // Appeler la fonction pour la question suivante
+            });
+        } else {
+            // Une fois toutes les questions posées, valider les réponses
+            validateResponses();
+        }
+    }
+
+    // Fonction pour valider les réponses de l'utilisateur
+    function validateResponses() {
+        // Filtrer les questions auxquelles l'utilisateur n'a pas répondu
+        const unansweredQuestions = responses.filter(r => !r.reponse);
+        if (unansweredQuestions.length > 0) {
+            console.log("\nAttention, vous n'avez pas répondu à toutes les questions.");
+            // Demander à l'utilisateur s'il souhaite confirmer ses réponses incomplètes
+            rl.question("Voulez-vous confirmer vos réponses ? (oui/non) : ", (confirmation) => {
+                if (confirmation.toLowerCase() === 'oui') {
+                    // Si l'utilisateur confirme, générer les résultats
+                    generateResults();
+                } else {
+                    // Sinon, reprendre à la première question sans réponse
+                    currentQuestionIndex = responses.findIndex(r => !r.reponse);
+                    askQuestion();
+                }
+            });
+        } else {
+            // Si toutes les questions ont une réponse, générer les résultats
+            generateResults();
+        }
+    }
+
+    // Fonction pour générer les résultats du test
+    function generateResults() {
+        let correctAnswers = 0; // Compteur de réponses correctes
+        responses.forEach(({ question, reponse }) => {
+            // Comparer la réponse de l'utilisateur avec la réponse correcte
+            if (question.correctAnswer === reponse) {
+                correctAnswers++;
+            }
+        });
+
+        // Calculer le score final en pourcentage
+        const score = (correctAnswers / questions.length) * 100;
+        console.log("\n--- Bilan des réponses ---");
+        console.log(`Bonnes réponses : ${correctAnswers}`);
+        console.log(`Mauvaises réponses : ${questions.length - correctAnswers}`);
+        console.log(`Score obtenu : ${score.toFixed(2)}%`);
+
+        // Retourner au menu principal
+        callbackMenu();
+    }
+
+    // Commencer le processus de passation du test
+    askQuestion();
+}
 
 
 // Fonction principale pour l'identification
@@ -360,6 +440,7 @@ END:VCARD`;
 
 
 module.exports = {
+    simulerPassation,
     identification,
     rechercherQuestion,
     creerExamen

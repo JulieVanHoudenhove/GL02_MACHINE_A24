@@ -1,6 +1,6 @@
 const readline = require('readline');
 const fs = require('fs');
-const { rechercherQuestion, creerExamen, identification } = require('./fonctions');
+const { rechercherQuestion, creerExamen, identification, simulerPassation } = require('./fonctions');
 
 // Supprimer le fichier temporaire au démarrage
 if (fs.existsSync('./temp_examen.json')) {
@@ -19,7 +19,8 @@ function afficherMenu() {
     console.log("1. Rechercher une question");
     console.log("2. Créer un examen");
     console.log("3. S'identifier");
-    console.log("4. Quitter");
+    console.log("4. Simuler la passation d'un examen");
+    console.log("5. Quitter");
 
     rl.question("\nChoisissez une option : ", (choix) => {
         switch (choix) {
@@ -30,9 +31,12 @@ function afficherMenu() {
                 creerExamen(rl, afficherMenu);
                 break;
             case '3':
-                identification(rl, afficherMenu)
+                identification(rl, afficherMenu);
                 break;
             case '4':
+                simulerPassation(rl, afficherMenu);
+                break;
+            case '5':
                 console.log("\nMerci d'avoir utilisé l'utilitaire. À bientôt !");
                 rl.close();
                 break;
@@ -43,8 +47,6 @@ function afficherMenu() {
     });
 }
 
-// Lancer le programme
+// Start the program
 afficherMenu();
 
-
-//ZAKARIAAAAAAAAA
