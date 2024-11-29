@@ -198,5 +198,170 @@ function supprimerQuestion(rl, callbackMenu) {
     });
 }
 
-module.exports = { rechercherQuestion, creerExamen };
+
+
+
+
+
+
+// Fonction principale pour l'identification
+function identification(rl, callbackMenu) {
+    const contact = {};  // Objet pour stocker les informations
+    askNom(rl, contact, callbackMenu);  // Démarrer le processus avec la fonction 'askNom'
+}
+
+// Fonction pour demander le nom
+function askNom(rl, contact, callbackMenu) {
+    rl.question("Entrez votre nom : ", (nom) => {
+        if (!nom) {
+            console.log("Le nom ne peut pas être vide.");
+            return askNom(rl, contact, callbackMenu);  // Redemander le nom uniquement
+        }
+        contact.nom = nom;
+        askPrenom(rl, contact, callbackMenu);  // Passer à la prochaine question
+    });
+}
+
+// Fonction pour demander le prénom
+function askPrenom(rl, contact, callbackMenu) {
+    rl.question("Entrez votre prénom : ", (prenom) => {
+        if (!prenom) {
+            console.log("Le prénom ne peut pas être vide.");
+            return askPrenom(rl, contact, callbackMenu);  // Redemander le prénom uniquement
+        }
+        contact.prenom = prenom;
+        askEmail(rl, contact, callbackMenu);  // Passer à la prochaine question
+    });
+}
+
+// Fonction pour demander l'email
+function askEmail(rl, contact, callbackMenu) {
+    rl.question("Entrez votre email : ", (email) => {
+        const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
+        if (!emailRegex.test(email)) {
+            console.log("L'email fourni n'est pas valide.");
+            return askEmail(rl, contact, callbackMenu);  // Redemander l'email uniquement
+        }
+        contact.email = email;
+        askTelephonePro(rl, contact, callbackMenu);  // Passer à la prochaine question
+    });
+}
+
+// Fonction pour demander le téléphone professionnel
+function askTelephonePro(rl, contact, callbackMenu) {
+    rl.question("Entrez votre téléphone professionnel sous format +33 : ", (telephonePro) => {
+        // Regex pour vérifier que le numéro commence par +33 suivi de 9 chiffres
+        const telRegex = /^\+33[0-9]{9}$/;
+        if (!telRegex.test(telephonePro)) {
+            console.log("Le numéro de téléphone professionnel est invalide. Il doit commencer par +33 et être suivi de 9 chiffres.");
+            return askTelephonePro(rl, contact, callbackMenu);  // Redemander le téléphone pro uniquement
+        }
+        contact.telephonePro = telephonePro;
+        askTelephonePerso(rl, contact, callbackMenu);  // Passer à la prochaine question
+    });
+}
+
+// Fonction pour demander le téléphone personnel
+function askTelephonePerso(rl, contact, callbackMenu) {
+    rl.question("Entrez votre téléphone personnel : ", (telephonePerso) => {
+        // Regex pour accepter les numéros commençant par +33 ou un numéro local à 10 chiffres (ex : 06XXXXXXXX)
+        const telRegex = /^(?:\+33[0-9]{9}|0[1-9][0-9]{8})$/;
+        if (!telRegex.test(telephonePerso)) {
+            console.log("Le numéro de téléphone personnel est invalide. Il doit commencer par +33 suivi de 9 chiffres ou un numéro local valide.");
+            return askTelephonePerso(rl, contact, callbackMenu);  // Redemander le téléphone perso uniquement
+        }
+        contact.telephonePerso = telephonePerso;
+        askAdressePerso(rl, contact, callbackMenu);  // Passer à la prochaine question
+    });
+}
+
+
+// Fonction pour demander l'adresse personnelle
+function askAdressePerso(rl, contact, callbackMenu) {
+    rl.question("Entrez votre adresse personnelle (format : rue;code postal;ville;pays) : ", (adressePerso) => {
+        const adresseRegex = /^[^;]+;[^;]+;[^;]+;[^;]+$/;
+        if (!adresseRegex.test(adressePerso)) {
+            console.log("L'adresse fournie n'est pas valide. Le format attendu est : rue;code postal;ville;pays");
+            return askAdressePerso(rl, contact, callbackMenu);  // Redemander l'adresse uniquement
+        }
+        contact.adressePerso = adressePerso;
+        askLieuTravail(rl, contact, callbackMenu);  // Passer à la prochaine question
+    });
+}
+
+// Fonction pour demander le lieu de travail
+function askLieuTravail(rl, contact, callbackMenu) {
+    rl.question("Entrez le lieu de travail : ", (lieuTravail) => {
+        if (!lieuTravail) {
+            console.log("Le lieu de travail ne peut pas être vide.");
+            return askLieuTravail(rl, contact, callbackMenu);  // Redemander le lieu de travail uniquement
+        }
+        contact.lieuTravail = lieuTravail;
+        askBureau(rl, contact, callbackMenu);  // Passer à la prochaine question
+    });
+}
+
+// Fonction pour demander le bureau
+function askBureau(rl, contact, callbackMenu) {
+    rl.question("Entrez votre numéro de bureau : ", (bureau) => {
+        if (!bureau) {
+            console.log("Le numéro de bureau ne peut pas être vide.");
+            return askBureau(rl, contact, callbackMenu);  // Redemander le bureau uniquement
+        }
+        contact.bureau = bureau;
+        generateVCard(rl, contact, callbackMenu);  // Passer à la génération de la VCard
+    });
+}
+
+// Fonction pour générer la VCard
+function generateVCard(rl, contact, callbackMenu) {
+    // Générer le contenu de la VCard
+    const vcardContent = generateVCardContent(contact);
+
+    // Demander où sauvegarder le fichier VCard
+    rl.question("Entrez le chemin où sauvegarder la fiche contact (ex : ./contact.vcf) : ", (cheminFichier) => {
+        try {
+            // Sauvegarder la VCard dans un fichier
+            fs.writeFileSync(cheminFichier, vcardContent);
+            console.log("La fiche contact a été générée avec succès.");
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde du fichier : ", error.message);
+        }
+
+        // Retour au menu principal
+        callbackMenu();
+    });
+}
+
+// Fonction pour générer le contenu de la VCard (à adapter selon les besoins)
+function generateVCardContent(contact) {
+    return `BEGIN:VCARD
+NOM ${contact.nom}
+PRENOM ${contact.prenom}
+FN:${contact.prenom} ${contact.nom}
+EMAIL:${contact.email}
+TEL;WORK:${contact.telephonePro}
+TEL;HOME:${contact.telephonePerso}
+ADR;HOME:${contact.adressePerso}
+ORG:${contact.lieuTravail}
+TEL;WORK:${contact.bureau}
+END:VCARD`;
+}
+
+
+
+
+// Fonction pour générer le contenu de la VCard
+
+
+
+
+
+
+
+module.exports = {
+    identification,
+    rechercherQuestion,
+    creerExamen
+};
 
