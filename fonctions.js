@@ -1,5 +1,6 @@
 const fs = require('fs');
 const { chargerQuestions } = require('./parser');
+const { generateGraph } = require('./graphGenerator'); // Supposons qu'il existe un module pour générer des graphiques
 
 let questionsSelectionnees = []; // Stock temporaire des questions sélectionnées
 
@@ -283,6 +284,88 @@ function simulerPassation(rl, callbackMenu) {
     askQuestion();
 }
 
+// Fonction pour comparer le profil d'un examen
+function comparerProfilExamen(rl, callbackMenu) {
+    // Charger la liste des examens
+    const exams = chargerExams('./exams'); // Supposons que cette fonction charge tous les examens depuis un répertoire
+    if (exams.length === 0) {
+        console.log("\nAucun examen trouvé. Veuillez d'abord créer un examen.");
+        callbackMenu(); // Retour au menu principal
+        return;
+    }
+
+    console.log("\n--- Comparer le profil d'un examen ---");
+    // Afficher tous les examens disponibles avec leur index
+    exams.forEach((exam, index) => {
+        console.log(`${index + 1}. ${exam.nom}`);
+    });
+
+    // Demander à l'utilisateur de choisir un examen à comparer
+    rl.question("\nChoisissez un examen à comparer : ", (choixExamen) => {
+        const examIndex = parseInt(choixExamen) - 1;
+        // Vérifier si l'indice sélectionné est valide
+        if (examIndex < 0 || examIndex >= exams.length) {
+            console.log("Choix invalide.");
+            return comparerProfilExamen(rl, callbackMenu); // Relancer la sélection en cas d'erreur
+        }
+
+        const selectedExam = exams[examIndex];
+        console.log(`\nExamen sélectionné : ${selectedExam.nom}`);
+
+        // Demander les chemins des fichiers GIFT de référence pour comparaison
+        rl.question("Entrez les chemins des fichiers GIFT de référence (séparés par des virgules) : ", (fichiers) => {
+            const fichiersPaths = fichiers.split(',').map(f => f.trim()); // Transformer les chemins en tableau
+            const referenceQuestions = fichiersPaths.flatMap(path => chargerQuestions(path)); // Charger toutes les questions de référence
+
+            // Analyser le profil des questions de l'examen sélectionné
+            const examProfile = analyserProfil(selectedExam.questions);
+            // Analyser le profil des questions de référence
+            const referenceProfile = analyserProfil(referenceQuestions);
+
+            // Comparer les deux profils
+            const comparison = comparerProfils(examProfile, referenceProfile);
+            console.log("\n--- Rapport de comparaison ---");
+            console.log(comparison);
+
+            // Générer un graphique pour visualiser la comparaison
+            generateGraph(examProfile, referenceProfile);
+
+            callbackMenu(); // Retour au menu principal après la comparaison
+        });
+    });
+}
+
+// Fonction pour analyser le profil des questions d'un examen ou d'une référence
+function analyserProfil(questions) {
+    const profile = {
+        choixMultiples: 0, // Nombre de questions à choix multiples
+        vraiFaux: 0,       // Nombre de questions vrai/faux
+        correspondance: 0, // Nombre de questions de type correspondance
+        // Ajouter d'autres types si nécessaire
+    };
+
+    // Parcourir chaque question pour compter les types
+    questions.forEach(question => {
+        if (question.type === 'choixMultiples') profile.choixMultiples++;
+        else if (question.type === 'vraiFaux') profile.vraiFaux++;
+        else if (question.type === 'correspondance') profile.correspondance++;
+        // Ajouter d'autres types si nécessaire
+    });
+
+    return profile; // Retourner le profil des questions
+}
+
+// Fonction pour comparer deux profils d'examen
+function comparerProfils(profil1, profil2) {
+    const comparison = [];
+    for (const type in profil1) {
+        // Calculer la différence entre les deux profils pour chaque type de question
+        const diff = profil1[type] - profil2[type];
+        comparison.push(`L'examen contient ${diff} ${type} de plus que la référence.`);
+    }
+    return comparison.join('\n'); // Retourner la comparaison sous forme de chaîne de caractères
+}
+
 
 // Fonction principale pour l'identification
 function identification(rl, callbackMenu) {
@@ -440,6 +523,7 @@ END:VCARD`;
 
 
 module.exports = {
+    comparerProfilExamen,
     simulerPassation,
     identification,
     rechercherQuestion,
