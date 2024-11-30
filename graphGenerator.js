@@ -1,5 +1,4 @@
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
-
 const width = 800; // Width of the chart
 const height = 600; // Height of the chart
 const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
