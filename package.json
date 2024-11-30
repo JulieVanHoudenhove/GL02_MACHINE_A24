@@ -1,8 +1,0 @@
-{
-  "name": "GL02_MACHINE_A24",
-  "version": "1.0.0",
-  "dependencies": {
-    "inquirer": "^12.1.0",
-    "quickchart-js": "^3.1.3"
-  }
-}
