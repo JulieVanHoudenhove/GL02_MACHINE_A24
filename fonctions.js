@@ -1,8 +1,8 @@
 const fs = require('fs');
 const { chargerQuestions } = require('./parser');
-const { generateGraph } = require('./graphGenerator'); // Supposons qu'il existe un module pour générer des graphiques
+const { generateGraph } = require('./graphGenerator');
 
-let questionsSelectionnees = []; // Stock temporaire des questions sélectionnées
+let questionsSelectionnees = []; // stockage temporaire des questions sélectionnées
 
 // Fonction pour rechercher des questions
 function rechercherQuestion(rl, callbackMenu) {
