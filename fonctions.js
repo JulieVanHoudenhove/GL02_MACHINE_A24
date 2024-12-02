@@ -1,6 +1,7 @@
 const fs = require("fs");
 const { chargerDossier, chargerQuestions} = require("./parser");
 const { generateGraph } = require("./graphGenerator");
+const {join, basename} = require("path");
 
 let questionsSelectionnees = []; // stockage temporaire des questions sélectionnées
 
@@ -373,11 +374,11 @@ function simulerPassation(rl, callbackMenu) {
 
 // Fonction pour comparer le profil d'un examen
 function comparerProfilExamen(rl, callbackMenu) {
-  // Charger la liste des examens
-  const exams = chargerDossier("./examens");
+  // Charger la liste des examens dans le dossier "./examens"
+  const exams = chargerExam("./examens"); // Cette fonction doit renvoyer un tableau d'examens avec leurs questions
   if (exams.length === 0) {
     console.log("\nAucun examen trouvé. Veuillez d'abord créer un examen.");
-    callbackMenu(); // Retour au menu principal
+    callbackMenu();
     return;
   }
 
@@ -388,11 +389,12 @@ function comparerProfilExamen(rl, callbackMenu) {
   });
 
   // Demander à l'utilisateur de choisir un examen à comparer
-  rl.question("\nChoisissez un examen à comparer : ", (choixExamen) => {
+  rl.question("\nChoisissez un examen à comparer (numéro) : ", (choixExamen) => {
     const examIndex = parseInt(choixExamen) - 1;
+
     // Vérifier si l'indice sélectionné est valide
-    if (examIndex < 0 || examIndex >= exams.length) {
-      console.log("Choix invalide.");
+    if (isNaN(examIndex) || examIndex < 0 || examIndex >= exams.length) {
+      console.log("Choix invalide. Veuillez entrer un numéro valide.");
       return comparerProfilExamen(rl, callbackMenu); // Relancer la sélection en cas d'erreur
     }
 
@@ -401,47 +403,95 @@ function comparerProfilExamen(rl, callbackMenu) {
 
     // Demander les chemins des fichiers GIFT de référence pour comparaison
     rl.question(
-      "Entrez les chemins des fichiers GIFT de référence (séparés par des virgules) : ",
-      (fichiers) => {
-        const fichiersPaths = fichiers.split(",").map((f) => f.trim()); // Transformer les chemins en tableau
-        const referenceQuestions = fichiersPaths.flatMap((path) =>
-          chargerQuestions(path),
-        ); // Charger toutes les questions de référence
+        "Entrez les chemins des fichiers GIFT de référence (séparés par des virgules) : ",
+        (fichiers) => {
+          const fichiersPaths = fichiers.split(",").map((f) => f.trim());
 
-        // Analyser le profil des questions de l'examen sélectionné
-        const examProfile = analyserProfil(selectedExam.questions);
-        // Analyser le profil des questions de référence
-        const referenceProfile = analyserProfil(referenceQuestions);
+          // Charger les questions de référence à partir des fichiers GIFT
+          const referenceQuestions = fichiersPaths.flatMap((chemin) => {
+            if (!fs.existsSync(chemin)) {
+              console.log(`\nLe fichier '${chemin}' n'existe pas.`);
+              return [];
+            }
+            return chargerQuestions(chemin); // Charger les questions depuis chaque fichier
+          });
 
-        // Comparer les deux profils
-        const comparison = comparerProfils(examProfile, referenceProfile);
-        console.log("\n--- Rapport de comparaison ---");
-        console.log(comparison);
+          if (referenceQuestions.length === 0) {
+            console.log("\nAucune question de référence chargée. Vérifiez les fichiers sélectionnés.");
+            callbackMenu();
+            return;
+          }
 
-        // Générer un graphique pour visualiser la comparaison
-        generateGraph(examProfile, referenceProfile);
+          // Analyser le profil des questions de l'examen sélectionné
+          const examProfile = analyserProfil(selectedExam.questions);
+          // Analyser le profil des questions de référence
+          const referenceProfile = analyserProfil(referenceQuestions);
 
-        callbackMenu(); // Retour au menu principal après la comparaison
-      },
+          // Comparer les deux profils
+          const comparison = comparerProfils(examProfile, referenceProfile);
+          console.log("\n--- Rapport de comparaison ---");
+          console.log(comparison);
+
+          // Générer un graphique pour visualiser la comparaison (si la fonction existe)
+          generateGraph(examProfile, referenceProfile);
+
+          callbackMenu(); // Retour au menu principal après la comparaison
+        }
     );
   });
+}
+
+// Fonction pour charger les examens depuis un dossier
+function chargerExam(dossier) {
+  try {
+    const fichiers = fs.readdirSync(dossier);
+    return fichiers.map((fichier) => {
+      const cheminFichier = join(dossier, fichier);
+      const contenu = fs.readFileSync(cheminFichier, 'utf8');
+      const questions = chargerQuestions(cheminFichier); // Charger les questions de chaque examen
+      return { nom: basename(fichier, '.gift'), questions };
+    });
+  } catch (error) {
+    console.error("Erreur lors du chargement des examens :", error.message);
+    return [];
+  }
 }
 
 // Fonction pour analyser le profil des questions d'un examen ou d'une référence
 function analyserProfil(questions) {
   const profile = {
-    choixMultiples: 0, // Nombre de questions à choix multiples
-    vraiFaux: 0, // Nombre de questions vrai/faux
-    correspondance: 0, // Nombre de questions de type correspondance
-    // Ajouter d'autres types si nécessaire
+    choixMultiples: 0,
+    vraiFaux: 0,
+    correspondance: 0,
+    motManquant: 0,
+    numerique: 0,
+    questionOuverte: 0
   };
 
   // Parcourir chaque question pour compter les types
   questions.forEach((question) => {
-    if (question.type === "choixMultiples") profile.choixMultiples++;
-    else if (question.type === "vraiFaux") profile.vraiFaux++;
-    else if (question.type === "correspondance") profile.correspondance++;
-    // Ajouter d'autres types si nécessaire
+    switch (question.type) {
+      case "Choix Multiple":
+        profile.choixMultiples++;
+        break;
+      case "Vrai/Faux":
+        profile.vraiFaux++;
+        break;
+      case "Correspondance":
+        profile.correspondance++;
+        break;
+      case "Mot Manquant":
+        profile.motManquant++;
+        break;
+      case "Numerique":
+        profile.numerique++;
+        break;
+      case "Question Ouverte":
+        profile.questionOuverte++;
+        break;
+      default:
+        break; // Ignorer les types inconnus
+    }
   });
 
   return profile; // Retourner le profil des questions
@@ -451,15 +501,14 @@ function analyserProfil(questions) {
 function comparerProfils(profil1, profil2) {
   const comparison = [];
   for (const type in profil1) {
-    // Calculer la différence entre les deux profils pour chaque type de question
     const diff = profil1[type] - profil2[type];
-    comparison.push(
-      `L'examen contient ${diff} ${type} de plus que la référence.`,
-    );
+    const message = diff === 0
+        ? `Nombre de questions ${type.replace(/([A-Z])/g, ' $1').toLowerCase()} identique.`
+        : `L'examen sélectionné contient ${Math.abs(diff)} ${type.replace(/([A-Z])/g, ' $1').toLowerCase()} ${diff > 0 ? 'de plus' : 'de moins'} que la référence.`;
+    comparison.push(message);
   }
   return comparison.join("\n"); // Retourner la comparaison sous forme de chaîne de caractères
 }
-
 // Fonction principale pour l'identification
 function identification(rl, callbackMenu) {
   const contact = {}; // Objet pour stocker les informations
