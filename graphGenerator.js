@@ -1,6 +1,6 @@
 const { ChartJSNodeCanvas } = require('chartjs-node-canvas');
-const width = 800; // Width of the chart
-const height = 600; // Height of the chart
+const width = 800; // Largeur du graph
+const height = 600; // Hauteur du graph
 const chartJSNodeCanvas = new ChartJSNodeCanvas({ width, height });
 
 async function generateGraph(examProfile, referenceProfile) {
@@ -40,7 +40,7 @@ async function generateGraph(examProfile, referenceProfile) {
 
     const imageBuffer = await chartJSNodeCanvas.renderToBuffer(configuration);
     require('fs').writeFileSync('./profile_comparison.png', imageBuffer);
-    console.log('Graph generated: profile_comparison.png');
+    console.log('Graph généré: profile_comparison.png');
 }
 
 module.exports = { generateGraph };
