@@ -51,6 +51,6 @@ function afficherMenu() {
     });
 }
 
-// Start the program
+// Début du programme
 afficherMenu();
 
