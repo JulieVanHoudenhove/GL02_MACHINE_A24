@@ -511,17 +511,6 @@ TEL;WORK:${contact.bureau}
 END:VCARD`;
 }
 
-
-
-
-// Fonction pour générer le contenu de la VCard
-
-
-
-
-
-
-
 module.exports = {
     comparerProfilExamen,
     simulerPassation,
