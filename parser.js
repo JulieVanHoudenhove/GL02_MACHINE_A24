@@ -1,18 +1,30 @@
 const fs = require('fs');
+const path = require('path');
 
-// Fonction pour charger et parser les questions depuis le fichier texte
-function chargerQuestions(fichier) {
+
+// Fonction pour charger et parser les questions depuis tous les fichiers d'un dossier
+function chargerDossier(dossier) {
     try {
-        const contenu = fs.readFileSync(fichier, 'utf8');
+        const fichiers = fs.readdirSync(dossier); // Lire tous les fichiers du dossier
+        let questions = [];
 
-        // Divise les questions en utilisant une regex qui trouve les blocs de questions
-        const questionsBrutes = contenu.split(/(?=::Question \d+)/); // Assure qu'on garde le séparateur intact
+        // Parcourir chaque fichier et charger les questions
+        fichiers.forEach(fichier => {
+            const cheminFichier = path.join(dossier, fichier);
 
-        // Parse chaque question et renvoie un tableau de questions valides
-        const questions = questionsBrutes.map((bloc) => {
-            const question = parserQuestion(bloc.trim());
-            return question; // Renvoie la question si elle est valide
-        }).filter(q => q); // Filtrer les entrées invalides (par exemple, questions mal formatées)
+            // Vérifier que le fichier est bien un fichier .gift
+            if (fs.statSync(cheminFichier).isFile() && path.extname(fichier) === '.gift') {
+                const contenu = fs.readFileSync(cheminFichier, 'utf8');
+
+                // Divise les questions en utilisant une regex qui trouve les blocs de questions
+                const questionsBrutes = contenu.split(/(?=\n::)/); // Sépare les questions par le début d'une nouvelle ligne `::`
+
+                // Parse chaque question et ajoute à la liste globale
+                questions = questions.concat(
+                    questionsBrutes.map((bloc) => parserQuestion(bloc.trim())).filter(q => q)
+                );
+            }
+        });
 
         return questions;
     } catch (error) {
@@ -20,6 +32,33 @@ function chargerQuestions(fichier) {
         return [];
     }
 }
+
+// Fonction pour charger et parser les questions depuis un seul fichier
+function chargerQuestions(fichier) {
+    try {
+        const cheminFichier = path.resolve(fichier);
+
+        // Vérifier que le fichier est bien un fichier .gift
+        if (fs.statSync(cheminFichier).isFile() && path.extname(fichier) === '.gift') {
+            const contenu = fs.readFileSync(cheminFichier, 'utf8');
+
+            // Divise les questions en utilisant une regex qui trouve les blocs de questions
+            const questionsBrutes = contenu.split(/(?=\n::)/); // Sépare les questions par le début d'une nouvelle ligne `::`
+
+            // Parse chaque question et ajoute à la liste globale
+            const questions = questionsBrutes.map((bloc) => parserQuestion(bloc.trim())).filter(q => q);
+
+            return questions;
+        } else {
+            console.error("Le fichier spécifié n'est pas un fichier .gift valide.");
+            return [];
+        }
+    } catch (error) {
+        console.error("Erreur lors du chargement de l'examen :", error.message);
+        return [];
+    }
+}
+
 
 // Fonction pour parser une question individuelle
 function parserQuestion(bloc) {
@@ -79,7 +118,7 @@ function infererType(reponses, question) {
 
     // Vérification pour une réponse numérique (par exemple, {#42})
     if (/^{#\d+}/.test(reponses)) {
-        return "Numérique"; // Réponse Numérique
+        return "Numerique"; // Réponse Numérique
     }
 
     return "Inconnu"; // Si non reconnu
@@ -117,4 +156,4 @@ function parserReponsesGenerales(reponsesBrutes) {
     return reponses;
 }
 
-module.exports = { chargerQuestions };
+module.exports = { chargerDossier, chargerQuestions };

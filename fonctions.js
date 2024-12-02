@@ -1,12 +1,13 @@
 const fs = require("fs");
-const { chargerQuestions } = require("./parser");
+const { chargerDossier, chargerQuestions} = require("./parser");
 const { generateGraph } = require("./graphGenerator");
 
 let questionsSelectionnees = []; // stockage temporaire des questions sélectionnées
 
 // Fonction pour rechercher des questions
 function rechercherQuestion(rl, callbackMenu) {
-  const questions = chargerQuestions("./questions.gift");
+  const questions = chargerDossier("./questions");
+
 
   console.log("\n--- Recherche de questions ---");
   console.log("1. Mot-clé (par exemple : 'Mathématiques')");
@@ -134,7 +135,7 @@ function verifierExamen(rl, callbackMenu) {
 
   // Demander le nom du fichier GIFT
   rl.question(
-    "\nEntrez le nom du fichier GIFT (sans extension) : ",
+    "\nEntrez le nom du fichier GIFT (sans extension) (il sera créé dans le dossier examens) : ",
     (nomFichier) => {
       if (!nomFichier.trim()) {
         // Vérifier si le nom est vide
@@ -144,7 +145,7 @@ function verifierExamen(rl, callbackMenu) {
         return verifierExamen(rl, callbackMenu); // Redemander le nom du fichier
       }
 
-      const cheminComplet = `./${nomFichier}.gift`;
+      const cheminComplet = `./examens/${nomFichier}.gift`;
 
       // Vérifier si le fichier existe déjà
       if (fs.existsSync(cheminComplet)) {
@@ -245,96 +246,135 @@ function supprimerQuestion(rl, callbackMenu) {
 
 // Fonction pour simuler la passation d'un test
 function simulerPassation(rl, callbackMenu) {
-  // Charger les questions depuis le fichier GIFT
-  const questions = chargerQuestions("./examen.gift");
-  if (questions.length === 0) {
-    // Message si aucun examen n'est trouvé
-    console.log("\nAucun examen trouvé. Veuillez d'abord créer un examen.");
-    callbackMenu();
-    return;
-  }
+  rl.question("\nEntrez le chemin du fichier d'examen à passer (./examens/nomFichier.gift) : ", (cheminExamen) => {
+      const questions = chargerQuestions(cheminExamen);
 
-  let currentQuestionIndex = 0; // Index de la question actuelle
-  let responses = []; // Liste pour stocker les réponses de l'utilisateur
-
-  // Fonction pour poser une question
-  function askQuestion() {
-    if (currentQuestionIndex < questions.length) {
-      const question = questions[currentQuestionIndex];
-      // Afficher la question et son contenu
-      console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.titre}`);
-      console.log(question.contenu);
-
-      // Demander une réponse à l'utilisateur
-      rl.question("\nVotre réponse : ", (reponse) => {
-        // Ajouter la réponse de l'utilisateur à la liste des réponses
-        responses.push({ question, reponse });
-        currentQuestionIndex++; // Passer à la question suivante
-        askQuestion(); // Appeler la fonction pour la question suivante
-      });
-    } else {
-      // Une fois toutes les questions posées, valider les réponses
-      validateResponses();
+    if (questions.length === 0) {
+      console.log("\nAucun examen trouvé. Veuillez vérifier le chemin du fichier.");
+      callbackMenu();
+      return;
     }
-  }
 
-  // Fonction pour valider les réponses de l'utilisateur
-  function validateResponses() {
-    // Filtrer les questions auxquelles l'utilisateur n'a pas répondu
-    const unansweredQuestions = responses.filter((r) => !r.reponse);
-    if (unansweredQuestions.length > 0) {
-      console.log(
-        "\nAttention, vous n'avez pas répondu à toutes les questions.",
-      );
-      // Demander à l'utilisateur s'il souhaite confirmer ses réponses incomplètes
-      rl.question(
-        "Voulez-vous confirmer vos réponses ? (oui/non) : ",
-        (confirmation) => {
-          if (confirmation.toLowerCase() === "oui") {
-            // Si l'utilisateur confirme, générer les résultats
-            generateResults();
+    let currentQuestionIndex = 0;
+    let correctAnswers = 0;
+
+    // Fonction pour poser une question
+    function askQuestion() {
+      if (currentQuestionIndex < questions.length) {
+        const question = questions[currentQuestionIndex];
+        afficherQuestion(question);
+
+        rl.question("\nVotre réponse : ", (reponse) => {
+          // Validation de la réponse en fonction du type de question
+          const isCorrect = validerReponse(question, reponse.trim());
+          if (isCorrect) {
+            console.log("✅ Bonne réponse !");
+            correctAnswers++;
           } else {
-            // Sinon, reprendre à la première question sans réponse
-            currentQuestionIndex = responses.findIndex((r) => !r.reponse);
-            askQuestion();
+            console.log(`❌ Mauvaise réponse. La bonne réponse était : ${getBonneReponse(question)}`);
           }
-        },
-      );
-    } else {
-      // Si toutes les questions ont une réponse, générer les résultats
-      generateResults();
-    }
-  }
 
-  // Fonction pour générer les résultats du test
-  function generateResults() {
-    let correctAnswers = 0; // Compteur de réponses correctes
-    responses.forEach(({ question, reponse }) => {
-      // Comparer la réponse de l'utilisateur avec la réponse correcte
-      if (question.correctAnswer === reponse) {
-        correctAnswers++;
+          currentQuestionIndex++;
+          askQuestion();
+        });
+      } else {
+        afficherResultats();
       }
-    });
+    }
 
-    // Calculer le score final en pourcentage
-    const score = (correctAnswers / questions.length) * 100;
-    console.log("\n--- Bilan des réponses ---");
-    console.log(`Bonnes réponses : ${correctAnswers}`);
-    console.log(`Mauvaises réponses : ${questions.length - correctAnswers}`);
-    console.log(`Score obtenu : ${score.toFixed(2)}%`);
+    // Fonction pour afficher une question selon son type
+    function afficherQuestion(question) {
+      console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.enonce}`);
 
-    // Retourner au menu principal
-    callbackMenu();
-  }
+      switch (question.type) {
+        case "Choix Multiple":
+          console.log("\nVeuillez choisir la bonne réponse :");
+          question.reponses.forEach((r, i) => {
+            console.log(`${i + 1}. ${r.texte}`); // Affiche les choix sans les symboles = ou ~
+          });
+          break;
 
-  // Commencer le processus de passation du test
-  askQuestion();
+        case "Vrai/Faux":
+          console.log("\nVeuillez choisir la bonne réponse :");
+          console.log("1. TRUE");
+          console.log("2. FALSE");
+          break;
+
+        case "Correspondance":
+          console.log("\nAssociez les éléments (entrez vos réponses sous forme de paires séparées par des ;) :");
+          question.reponses.forEach((r, i) => {
+            console.log(`${i + 1}. ${r.gauche} -> ?`); // Affiche uniquement la partie gauche
+          });
+          break;
+
+        case "Mot Manquant":
+          const questionSansCrochets = question.enonce.replace(/\[.*?\]/g, '____');
+          console.log(questionSansCrochets);
+          break;
+
+        case "Numérique":
+          console.log("\nVeuillez entrer la réponse numérique correcte :");
+          break;
+
+        default: // Question Ouverte
+          console.log(question.enonce);
+      }
+    }
+
+    // Fonction pour valider la réponse en fonction du type de question
+    function validerReponse(question, reponse) {
+      switch (question.type) {
+        case "Choix Multiple":
+          const choixIndex = parseInt(reponse) - 1;
+          return question.reponses[choixIndex]?.correct;
+
+        case "Vrai/Faux":
+          const vraiFauxReponse = reponse.toLowerCase();
+          return (vraiFauxReponse === "1" && question.reponses[0].correct) ||
+              (vraiFauxReponse === "2" && question.reponses[1].correct);
+
+        case "Correspondance":
+          return comparerCorrespondances(question.reponses, reponse.split(';'));
+
+        case "Mot Manquant":
+          const reponsesCorrectes = question.reponses.map(r => r.texte.toLowerCase());
+          return reponsesCorrectes.includes(reponse.toLowerCase());
+
+        case "Numérique":
+          return question.reponses[0].texte === reponse;
+
+        default:
+          return reponse.trim().length > 0; // Question ouverte : toujours correcte si réponse fournie
+      }
+    }
+
+    // Fonction pour afficher la bonne réponse
+    function getBonneReponse(question) {
+      if (question.reponses) {
+        return question.reponses.find(r => r.correct)?.texte || "Réponse inconnue";
+      }
+      return "Réponse inconnue";
+    }
+
+    // Fonction pour afficher les résultats finaux
+    function afficherResultats() {
+      const score = (correctAnswers / questions.length) * 100;
+      console.log("\n--- Bilan des réponses ---");
+      console.log(`Bonnes réponses : ${correctAnswers}`);
+      console.log(`Mauvaises réponses : ${questions.length - correctAnswers}`);
+      console.log(`Score obtenu : ${score.toFixed(2)}%`);
+      callbackMenu();
+    }
+
+    // Commencer le processus de passation du test
+    askQuestion();
+  });
 }
 
 // Fonction pour comparer le profil d'un examen
 function comparerProfilExamen(rl, callbackMenu) {
   // Charger la liste des examens
-  const exams = chargerExams("./exams"); // Supposons que cette fonction charge tous les examens depuis un répertoire
+  const exams = chargerDossier("./examens");
   if (exams.length === 0) {
     console.log("\nAucun examen trouvé. Veuillez d'abord créer un examen.");
     callbackMenu(); // Retour au menu principal
@@ -569,7 +609,7 @@ function generateVCard(rl, contact, callbackMenu) {
 // Function pour analyser le profil d'un examen
 function dresserProfil(rl, callbackMenu) {
   console.log("\n--- Dresser le profil d'un examen ---");
-  rl.question("Entrez le chemin du fichier GIFT à analyser : ", (filePath) => {
+  rl.question("Entrez le chemin du fichier GIFT à analyser : (./examens/nomFichier.gift) ", (filePath) => {
     try {
       // Load et validation du fichier
       const questions = chargerQuestions(filePath);
