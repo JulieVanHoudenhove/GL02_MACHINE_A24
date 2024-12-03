@@ -754,4 +754,8 @@ module.exports = {
   rechercherQuestion,
   creerExamen,
   dresserProfil,
+  comparerProfils,
+
+  generateVCardContent,
+  analyserProfil,
 };
