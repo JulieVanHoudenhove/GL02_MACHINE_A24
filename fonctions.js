@@ -261,6 +261,8 @@ function simulerPassation(rl, callbackMenu) {
 
     // Fonction pour poser une question
     function askQuestion() {
+      console.log("\n--- Passation de l'examen ---");
+      console.log("Veuillez répondre aux questions suivantes par le numéro quand il est indiqué:");
       if (currentQuestionIndex < questions.length) {
         const question = questions[currentQuestionIndex];
         afficherQuestion(question);
@@ -285,43 +287,43 @@ function simulerPassation(rl, callbackMenu) {
     }
 
     // Fonction pour afficher une question selon son type
-    function afficherQuestion(question) {
-      console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.enonce}`);
+function afficherQuestion(question) {
+  console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.enonce}`);
 
-      switch (question.type) {
-        case "Choix Multiple":
-          console.log("\nVeuillez choisir la bonne réponse :");
-          question.reponses.forEach((r, i) => {
-            console.log(`${i + 1}. ${r.texte}`); // Affiche les choix sans les symboles = ou ~
-          });
-          break;
+  switch (question.type) {
+    case "Choix Multiple":
+      console.log("\nVeuillez choisir la bonne réponse :");
+      question.reponses.forEach((r, i) => {
+        console.log(`${i + 1}. ${r.texte.split('#')[0].trim()}`); // Affiche les choix sans les symboles = ou ~ et cache les commentaires
+      });
+      break;
 
-        case "Vrai/Faux":
-          console.log("\nVeuillez choisir la bonne réponse :");
-          console.log("1. TRUE");
-          console.log("2. FALSE");
-          break;
+    case "Vrai/Faux":
+      console.log("\nVeuillez choisir la bonne réponse :");
+      console.log("1. TRUE");
+      console.log("2. FALSE");
+      break;
 
-        case "Correspondance":
-          console.log("\nAssociez les éléments (entrez vos réponses sous forme de paires séparées par des ;) :");
-          question.reponses.forEach((r, i) => {
-            console.log(`${i + 1}. ${r.gauche} -> ?`); // Affiche uniquement la partie gauche
-          });
-          break;
+    case "Correspondance":
+      console.log("\nAssociez les éléments (entrez vos réponses sous forme de paires séparées par des ;) :");
+      question.reponses.forEach((r, i) => {
+        console.log(`${i + 1}. ${r.gauche.split('#')[0].trim()} -> ?`); // Affiche uniquement la partie gauche et cache les commentaires
+      });
+      break;
 
-        case "Mot Manquant":
-          const questionSansCrochets = question.enonce.replace(/\[.*?\]/g, '____');
-          console.log(questionSansCrochets);
-          break;
+    case "Mot Manquant":
+      const questionSansCrochets = question.enonce.replace(/\[.*?\]/g, '____');
+      console.log(questionSansCrochets);
+      break;
 
-        case "Numérique":
-          console.log("\nVeuillez entrer la réponse numérique correcte :");
-          break;
+    case "Numérique":
+      console.log("\nVeuillez entrer la réponse numérique correcte :");
+      break;
 
-        default: // Question Ouverte
-          console.log(question.enonce);
-      }
-    }
+    default: // Question Ouverte
+      console.log(question.enonce);
+  }
+}
 
     // Fonction pour valider la réponse en fonction du type de question
     function validerReponse(question, reponse) {
