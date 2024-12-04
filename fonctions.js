@@ -343,8 +343,7 @@ function afficherQuestion(question) {
         case "Correspondance":
           // Nettoyer les correspondances pour enlever le #Bonne réponse
           const correspondancesNettoyees = nettoyerCorrespondances(question.reponses);
-          console.log(correspondancesNettoyees);
-          console.log(reponse.split(';'));
+
           return comparerCorrespondances(correspondancesNettoyees, reponse.split(';'));
 
 
@@ -769,23 +768,22 @@ function nettoyerCorrespondances(reponses) {
 }
 
 function comparerCorrespondances(reponsesAttendues, reponsesUtilisateur) {
-  // Diviser et nettoyer les réponses utilisateur pour obtenir des paires { gauche, droit }
-  const utilisateurPaires = reponsesUtilisateur.map((reponse) => {
-    const [gauche, droit] = reponse.split('->').map(part => part.trim());
-    return { gauche, droit };
-  });
+  // Diviser et nettoyer les réponses utilisateur
 
-  // Vérifier que toutes les réponses attendues correspondent exactement aux réponses utilisateur
-  if (reponsesAttendues.length !== utilisateurPaires.length) {
-    return false; // Si le nombre de paires est différent, la réponse est incorrecte
+
+  const reponsesDroitesUtilisateur = reponsesUtilisateur.map(reponse => reponse.trim());
+  // Vérifier que toutes les réponses utilisateur correspondent exactement aux réponses attendues (droit)
+  if (reponsesAttendues.length !== reponsesDroitesUtilisateur.length) {
+    return false; // Si le nombre de réponses est différent, la réponse est incorrecte
   }
 
-  // Comparer chaque paire attendue avec celle de l'utilisateur
+  // Comparer chaque réponse droite attendue avec celle de l'utilisateur
   return reponsesAttendues.every((attendue, index) => {
-    const utilisateur = utilisateurPaires[index];
-    return attendue.gauche === utilisateur.gauche && attendue.droit === utilisateur.droit;
+    const reponseUtilisateur = reponsesDroitesUtilisateur[index];
+    return attendue.droit === reponseUtilisateur;
   });
 }
+
 
 
 
