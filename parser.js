@@ -76,8 +76,11 @@ function parserQuestion(bloc) {
     let reponses = [];
     if (type === "Correspondance") {
         reponses = parserCorrespondance(reponsesBrutes);
-    } else if (type === "Choix Multiple" || type === "Vrai/Faux" || type === "Numérique") {
+    } else if (type === "Choix Multiple" || type === "Vrai/Faux" || type === "Numerique") {
         reponses = parserReponsesGenerales(reponsesBrutes);
+    }
+    else if (type === "Mot Manquant") {
+        reponses = parserMotsManquants(enonce);
     }
 
     const result = {
@@ -154,6 +157,17 @@ function parserReponsesGenerales(reponsesBrutes) {
     });
 
     return reponses;
+}
+function parserMotsManquants(enonce) {
+    const motsManquants = [];
+    const regex = /\[(.+?)\]/g; // Trouver tous les mots dans les crochets `[ ]`
+    let match;
+
+    while ((match = regex.exec(enonce)) !== null) {
+        motsManquants.push({ texte: match[1].trim() }); // Extraire chaque mot et l'ajouter à la liste
+    }
+
+    return motsManquants;
 }
 
 module.exports = { chargerDossier, chargerQuestions };

@@ -13,7 +13,7 @@ function rechercherQuestion(rl, callbackMenu) {
   console.log("\n--- Recherche de questions ---");
   console.log("1. Mot-clé (par exemple : 'Mathématiques')");
   console.log(
-    "2. Type de question (Choix Multiple, Vrai/Faux, Correspondance, Mot Manquant, Numérique, Question Ouverte)",
+    "2. Type de question (Choix Multiple, Vrai/Faux, Correspondance, Mot Manquant, Numerique, Question Ouverte)",
   );
   console.log("3. Afficher toutes les questions");
 
@@ -312,6 +312,7 @@ function afficherQuestion(question) {
       break;
 
     case "Mot Manquant":
+      console.log("\nDonnez tous les mot manquant séparés par des; :");
       const questionSansCrochets = question.enonce.replace(/\[.*?\]/g, '____');
       console.log(questionSansCrochets);
       break;
@@ -332,11 +333,12 @@ function afficherQuestion(question) {
           const choixIndex = parseInt(reponse) - 1;
           return question.reponses[choixIndex]?.correct;
 
+
         case "Vrai/Faux":
 
           const vraiFauxReponse = reponse.toLowerCase();
           const texteReponse1 = question.reponses[0].texte.split('#')[0].trim(); // Extrait 'TRUE'
-          console.log(texteReponse1);
+
           return (vraiFauxReponse === "1" && texteReponse1== "TRUE") ||
               (vraiFauxReponse === "2" && texteReponse1== "FALSE");
 
@@ -348,14 +350,23 @@ function afficherQuestion(question) {
 
 
         case "Mot Manquant":
+          // Extraire toutes les réponses correctes en minuscules
           const reponsesCorrectes = question.reponses.map(r => r.texte.toLowerCase());
-          console.log(reponsesCorrectes);
-          console.log(reponse.toLowerCase())
 
-          return reponsesCorrectes.includes(reponse.toLowerCase());
 
-        case "Numérique":
-          return question.reponses[0].texte === reponse;
+          // Diviser la réponse utilisateur par les espaces ou séparateurs (ex. ';')
+          const reponsesUtilisateur = reponse.split(';').map(r => r.trim().toLowerCase());
+
+
+          // Vérifier que toutes les réponses utilisateur correspondent exactement
+          return (
+              reponsesUtilisateur.length === reponsesCorrectes.length &&
+              reponsesUtilisateur.every((r, index) => r === reponsesCorrectes[index])
+          );
+
+
+        case "Numerique":
+          return question.reponses[0].texte.replace(/^#/, '') === String(reponse);
 
         default:
           return reponse.trim().length > 0; // Question ouverte : toujours correcte si réponse fournie
@@ -364,11 +375,53 @@ function afficherQuestion(question) {
 
     // Fonction pour afficher la bonne réponse
     function getBonneReponse(question) {
-      if (question.reponses) {
-        return question.reponses.find(r => r.correct)?.texte || "Réponse inconnue";
+      if (!question || !question.type) {
+        return "Type de question inconnu ou question mal formatée.";
       }
-      return "Réponse inconnue";
+
+      switch (question.type) {
+        case "Choix Multiple":
+
+        case "Vrai/Faux":
+
+          const texteReponse = question.reponses[0].texte.split('#')[0].trim() || "Réponse inconnue";
+          return texteReponse;
+
+        case "Correspondance":
+          // Nettoyer les correspondances, ou donner une valeur par défaut si aucune réponse
+          const correspondancesNettoyees = nettoyerCorrespondances(question.reponses) || "Réponse inconnue";
+
+          // Formatage des paires pour les questions de correspondance
+          const correspondancesAffichables = correspondancesNettoyees.map(correspondance => {
+            return `${correspondance.gauche} -> ${correspondance.droit}`;
+          }).join(", "); // Join les paires en une seule chaîne séparée par des virgules
+
+
+
+          return correspondancesAffichables;
+
+
+        case "Mot Manquant":
+          const reponsesCorrectes = question.reponses.map(r => r.texte.toLowerCase());
+          // Retourner tous les mots manquants
+          return reponsesCorrectes|| "Réponse inconnue";
+
+        case "Numerique":
+          // Retourner la réponse numérique sans le #
+          return question.reponses.length > 0
+              ? question.reponses[0].texte.replace(/^#/, '')
+              : "Réponse inconnue";
+
+
+        case "Question Ouverte":
+          return "Question ouverte - pas de bonne réponse prédéfinie.";
+
+        default:
+          return "Type de question non supporté.";
+      }
     }
+
+
 
     // Fonction pour afficher les résultats finaux
     function afficherResultats() {

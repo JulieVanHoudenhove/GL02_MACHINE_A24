@@ -27,7 +27,7 @@ TRUE#Bonne réponse
 }
 
 ::Question 8::La lune tourne autour du soleil ? {
-FALSE#Mauvaise réponse
+FALSE#Bonne réponse
 }
 
 ::Question 9::Le symbole chimique de l'eau est H2O ? {
@@ -53,5 +53,5 @@ TRUE#Bonne réponse
 }
 
 ::Question 15::L'Australie est un continent ? {
-TRUE#Bonne réponse
+FALSE#Bonne réponse
 }
