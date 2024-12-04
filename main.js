@@ -64,3 +64,5 @@ function afficherMenu() {
 
 // Début du programme
 afficherMenu();
+//./examens/examen.gift
+// Paris -> France; Berlin -> Allemagne; Tokyo -> Japon

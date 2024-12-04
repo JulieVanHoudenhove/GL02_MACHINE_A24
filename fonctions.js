@@ -267,6 +267,7 @@ function simulerPassation(rl, callbackMenu) {
 
         rl.question("\nVotre réponse : ", (reponse) => {
           // Validation de la réponse en fonction du type de question
+
           const isCorrect = validerReponse(question, reponse.trim());
           if (isCorrect) {
             console.log("✅ Bonne réponse !");
@@ -330,15 +331,26 @@ function simulerPassation(rl, callbackMenu) {
           return question.reponses[choixIndex]?.correct;
 
         case "Vrai/Faux":
+
           const vraiFauxReponse = reponse.toLowerCase();
-          return (vraiFauxReponse === "1" && question.reponses[0].correct) ||
-              (vraiFauxReponse === "2" && question.reponses[1].correct);
+          const texteReponse1 = question.reponses[0].texte.split('#')[0].trim(); // Extrait 'TRUE'
+          console.log(texteReponse1);
+          return (vraiFauxReponse === "1" && texteReponse1== "TRUE") ||
+              (vraiFauxReponse === "2" && texteReponse1== "FALSE");
 
         case "Correspondance":
-          return comparerCorrespondances(question.reponses, reponse.split(';'));
+          // Nettoyer les correspondances pour enlever le #Bonne réponse
+          const correspondancesNettoyees = nettoyerCorrespondances(question.reponses);
+          console.log(correspondancesNettoyees);
+          console.log(reponse.split(';'));
+          return comparerCorrespondances(correspondancesNettoyees, reponse.split(';'));
+
 
         case "Mot Manquant":
           const reponsesCorrectes = question.reponses.map(r => r.texte.toLowerCase());
+          console.log(reponsesCorrectes);
+          console.log(reponse.toLowerCase())
+
           return reponsesCorrectes.includes(reponse.toLowerCase());
 
         case "Numérique":
@@ -746,6 +758,34 @@ ORG:${contact.lieuTravail}
 TEL;WORK:${contact.bureau}
 END:VCARD`;
 }
+
+function nettoyerCorrespondances(reponses) {
+  return reponses.map((item) => ({
+    gauche: item.gauche.trim(),
+    droit: item.droit.split('#')[0].trim(), // Supprime la partie après le #
+  }));
+}
+
+function comparerCorrespondances(reponsesAttendues, reponsesUtilisateur) {
+  // Diviser et nettoyer les réponses utilisateur pour obtenir des paires { gauche, droit }
+  const utilisateurPaires = reponsesUtilisateur.map((reponse) => {
+    const [gauche, droit] = reponse.split('->').map(part => part.trim());
+    return { gauche, droit };
+  });
+
+  // Vérifier que toutes les réponses attendues correspondent exactement aux réponses utilisateur
+  if (reponsesAttendues.length !== utilisateurPaires.length) {
+    return false; // Si le nombre de paires est différent, la réponse est incorrecte
+  }
+
+  // Comparer chaque paire attendue avec celle de l'utilisateur
+  return reponsesAttendues.every((attendue, index) => {
+    const utilisateur = utilisateurPaires[index];
+    return attendue.gauche === utilisateur.gauche && attendue.droit === utilisateur.droit;
+  });
+}
+
+
 
 module.exports = {
   comparerProfilExamen,

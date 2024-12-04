@@ -121,7 +121,7 @@ function infererType(reponses, question) {
         return "Numerique"; // Réponse Numérique
     }
 
-    return "Inconnu"; // Si non reconnu
+    return "Ce type de question n'est pas encore supporté"; // Si non reconnu
 }
 
 // Fonction pour parser les paires de correspondance
