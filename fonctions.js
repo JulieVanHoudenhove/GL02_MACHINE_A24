@@ -260,39 +260,54 @@ function simulerPassation(rl, callbackMenu) {
     let correctAnswers = 0;
 
     // Fonction pour poser une question
-function askQuestion() {
-  console.log("\n--- Passation de l'examen ---");
-  console.log("Veuillez répondre aux questions suivantes par le numéro quand il est indiqué:");
-  if (currentQuestionIndex < questions.length) {
-    const question = questions[currentQuestionIndex];
-    afficherQuestion(question);
+    function askQuestion() {
 
-    rl.question("\nVotre réponse : ", (reponse) => {
-      // Validation de la réponse en fonction du type de question
+      if (currentQuestionIndex < questions.length) {
+        const question = questions[currentQuestionIndex];
+        afficherQuestion(question);
 
-      const isCorrect = validerReponse(question, reponse.trim());
-      if (isCorrect) {
-        console.log("✅ Bonne réponse !");
-        correctAnswers++;
+        rl.question("\nVotre réponse : ", (reponse) => {
+          // Validation de la réponse en fonction du type de question
+
+          const isCorrect = validerReponse(question, reponse.trim());
+          if (isCorrect) {
+            if(question.type === "Question Ouverte") {
+              console.log("Question Ouverte, pas de bonne réponse prédéfinie")
+            }
+            else {
+              console.log("✅ Bonne réponse !");
+            }
+
+            correctAnswers++;
+          } else {
+            console.log(`❌ Mauvaise réponse. La bonne réponse était : ${getBonneReponse(question)}`);
+          }
+
+          currentQuestionIndex++;
+          askQuestion();
+        });
       } else {
-        console.log(`❌ Mauvaise réponse. La bonne réponse était : ${getBonneReponse(question)}`);
+        afficherResultats();
       }
-
-      currentQuestionIndex++;
-      askQuestion();
-    });
-  } else {
-    afficherResultats();
-  }
-}
+    }
 
     // Fonction pour afficher une question selon son type
 function afficherQuestion(question) {
-
+      if (question.type === "Mot Manquant") {
+        console.log(`\nQuestion ${currentQuestionIndex + 1}`);
+      }
+      else if(question.type === "Numerique") {
+        console.log(`\nQuestion ${currentQuestionIndex + 1}`);
+      }
+      else if(question.type === "Question Ouverte") {
+        console.log(`\nQuestion ${currentQuestionIndex + 1}`);
+      }
+      else {
+        console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.enonce}`);
+}
 
   switch (question.type) {
     case "Choix Multiple":
-      console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.enonce}`);
       console.log("\nVeuillez choisir la bonne réponse :");
       question.reponses.forEach((r, i) => {
         console.log(`${i + 1}. ${r.texte.split('#')[0].trim()}`); // Affiche les choix sans les symboles = ou ~ et cache les commentaires
@@ -300,34 +315,30 @@ function afficherQuestion(question) {
       break;
 
     case "Vrai/Faux":
-      console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.enonce}`);
       console.log("\nVeuillez choisir la bonne réponse :");
       console.log("1. TRUE");
       console.log("2. FALSE");
       break;
 
     case "Correspondance":
-      console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.enonce}`);
-      console.log("\nAssociez les éléments (entrez vos réponses sous forme de paires séparées par des ;) :");
+      console.log("\nAssociez les éléments (entrez vos réponses séparées par des ;) :");
       question.reponses.forEach((r, i) => {
         console.log(`${i + 1}. ${r.gauche.split('#')[0].trim()} -> ?`); // Affiche uniquement la partie gauche et cache les commentaires
       });
       break;
 
     case "Mot Manquant":
+      console.log("\nDonnez tous les mot manquant séparés par des; :");
       const questionSansCrochets = question.enonce.replace(/\[.*?\]/g, '____');
-      console.log(`\nQuestion ${currentQuestionIndex + 1}: Donnez tous les mot manquant séparés par des; :`);
       console.log(questionSansCrochets);
       break;
 
     case "Numérique":
-      console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.enonce}`);
       console.log("\nVeuillez entrer la réponse numérique correcte :");
       break;
 
     default: // Question Ouverte
-      console.log(`\nQuestion ${currentQuestionIndex + 1}: ${question.enonce}`);
-
+      console.log(question.enonce);
   }
 }
 
@@ -439,6 +450,8 @@ function afficherQuestion(question) {
     }
 
     // Commencer le processus de passation du test
+    console.log("\n--- Passation de l'examen ---");
+    console.log("Veuillez répondre aux questions suivantes par le numéro quand il est indiqué:");
     askQuestion();
   });
 }
