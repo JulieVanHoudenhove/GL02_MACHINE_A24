@@ -487,9 +487,15 @@ function comparerProfilExamen(rl, callbackMenu) {
 
     // Demander les chemins des fichiers GIFT de référence pour comparaison
     rl.question(
-        "Entrez les chemins des fichiers GIFT de référence (séparés par des virgules) : ",
+        "Entrez les chemins des fichiers GIFT de référence (séparés par des virgules, max 3) : ",
         (fichiers) => {
           const fichiersPaths = fichiers.split(",").map((f) => f.trim());
+
+          // Vérification du nombre de fichiers sélectionnés
+          if (fichiersPaths.length > 3) {
+            console.log("\nErreur : Vous ne pouvez comparer qu'un maximum de 3 fichiers.");
+            return comparerProfilExamen(rl, callbackMenu); // Relancer la sélection en cas d'erreur
+          }
 
           // Charger les questions de référence à partir des fichiers GIFT
           const referenceQuestions = fichiersPaths.flatMap((chemin) => {
