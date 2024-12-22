@@ -531,6 +531,7 @@ function comparerProfilExamen(rl, callbackMenu) {
   });
 }
 
+
 // Fonction pour charger les examens depuis un dossier
 function chargerExam(dossier) {
   try {
