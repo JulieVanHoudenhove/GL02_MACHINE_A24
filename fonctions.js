@@ -117,7 +117,7 @@ function verifierExamen(rl, callbackMenu) {
     questionsSelectionnees.length > 20
   ) {
     console.log(
-      `\nVotre examen doit contenir entre 15 et 20 questions. Actuellement : ${questionsSelectionnees.length}`,
+      `\nVotre examen ne contient pas entre 15 et 20 questions, veuillez corriger cela. Actuellement : ${questionsSelectionnees.length}`,
     );
     modifierQuestions(rl, callbackMenu);
     return;
@@ -127,7 +127,7 @@ function verifierExamen(rl, callbackMenu) {
   const titres = new Set();
   for (const question of questionsSelectionnees) {
     if (titres.has(question.titre)) {
-      console.log(`\nDoublon détecté : ${question.titre}`);
+      console.log(`\nAu moins une question est en double, veuillez vérifier vos données. Doublon détecté: ${question.titre}`);
       modifierQuestions(rl, callbackMenu);
       return;
     }
@@ -176,7 +176,7 @@ function sauvegarderExamen(cheminComplet, callbackMenu) {
     // Générer le fichier GIFT
     const giftData = questionsSelectionnees.map((q) => q.contenu).join("\n\n");
     fs.writeFileSync(cheminComplet, giftData);
-    console.log(`\nExamen GIFT créé avec succès : ${cheminComplet}`);
+    console.log(`\nVotre fichier a été généré avec succès : ${cheminComplet}`);
 
     // Supprimer le fichier temporaire après la création
     fs.unlinkSync("./temp_examen.json");
@@ -603,7 +603,7 @@ function identification(rl, callbackMenu) {
 function askNom(rl, contact, callbackMenu) {
   rl.question("Entrez votre nom : ", (nom) => {
     if (!nom) {
-      console.log("Le nom ne peut pas être vide.");
+      console.log("Le nom ne peut pas être vide. Veuillez compléter les informations manquantes.");
       return askNom(rl, contact, callbackMenu); // Redemander le nom uniquement
     }
     contact.nom = nom;
@@ -615,7 +615,7 @@ function askNom(rl, contact, callbackMenu) {
 function askPrenom(rl, contact, callbackMenu) {
   rl.question("Entrez votre prénom : ", (prenom) => {
     if (!prenom) {
-      console.log("Le prénom ne peut pas être vide.");
+      console.log("Le prénom ne peut pas être vide. Veuillez compléter les informations manquantes.");
       return askPrenom(rl, contact, callbackMenu); // Redemander le prénom uniquement
     }
     contact.prenom = prenom;
@@ -628,7 +628,7 @@ function askEmail(rl, contact, callbackMenu) {
   rl.question("Entrez votre email : ", (email) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (!emailRegex.test(email)) {
-      console.log("L'email fourni n'est pas valide.");
+      console.log("L'email fourni n'est pas valide.Veuillez compléter les informations manquantes.");
       return askEmail(rl, contact, callbackMenu); // Redemander l'email uniquement
     }
     contact.email = email;
@@ -679,7 +679,7 @@ function askAdressePerso(rl, contact, callbackMenu) {
       const adresseRegex = /^[^;]+;[^;]+;[^;]+;[^;]+$/;
       if (!adresseRegex.test(adressePerso)) {
         console.log(
-          "L'adresse fournie n'est pas valide. Le format attendu est : rue;code postal;ville;pays",
+          "L'adresse fournie n'est pas valide. Le format attendu est : rue;code postal;ville;pays. \n Veuillez compléter les informations manquantes.",
         );
         return askAdressePerso(rl, contact, callbackMenu); // Redemander l'adresse uniquement
       }
@@ -693,7 +693,7 @@ function askAdressePerso(rl, contact, callbackMenu) {
 function askLieuTravail(rl, contact, callbackMenu) {
   rl.question("Entrez le lieu de travail : ", (lieuTravail) => {
     if (!lieuTravail) {
-      console.log("Le lieu de travail ne peut pas être vide.");
+      console.log("Le lieu de travail ne peut pas être vide. \n Veuillez compléter les informations manquantes.");
       return askLieuTravail(rl, contact, callbackMenu); // Redemander le lieu de travail uniquement
     }
     contact.lieuTravail = lieuTravail;
@@ -705,7 +705,7 @@ function askLieuTravail(rl, contact, callbackMenu) {
 function askBureau(rl, contact, callbackMenu) {
   rl.question("Entrez votre numéro de bureau : ", (bureau) => {
     if (!bureau) {
-      console.log("Le numéro de bureau ne peut pas être vide.");
+      console.log("Le numéro de bureau ne peut pas être vide. \n Veuillez compléter les informations manquantes.");
       return askBureau(rl, contact, callbackMenu); // Redemander le bureau uniquement
     }
     contact.bureau = bureau;
