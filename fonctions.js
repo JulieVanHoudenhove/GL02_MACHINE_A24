@@ -259,22 +259,33 @@ function simulerPassation(rl, callbackMenu) {
     let currentQuestionIndex = 0;
     let correctAnswers = 0;
 
-    // Fonction pour poser une question
-    function askQuestion() {
+  // Fonction pour poser une question
+  function askQuestion() {
+    if (currentQuestionIndex < questions.length) {
+      const question = questions[currentQuestionIndex];
+      afficherQuestion(question);
 
-      if (currentQuestionIndex < questions.length) {
-        const question = questions[currentQuestionIndex];
-        afficherQuestion(question);
+      rl.question("\nVotre réponse : ", (reponse) => {
+        if (reponse.trim() === "") {
+          // Avertir l'utilisateur qu'il n'a pas répondu
+          console.log("\n⚠️ Vous n'avez pas répondu à cette question.");
+          rl.question("Confirmez-vous que vous ne souhaitez pas répondre à cette question ? (Oui/Non) : ", (confirmation) => {
+            if (confirmation.toLowerCase() === "non") {
+              console.log("Veuillez entrer votre réponse.");
+              return askQuestion(); // Relancer la question
+            }
 
-        rl.question("\nVotre réponse : ", (reponse) => {
+            console.log("Réponse non fournie enregistrée comme incorrecte.");
+            currentQuestionIndex++;
+            askQuestion(); // Passer à la question suivante
+          });
+        } else {
           // Validation de la réponse en fonction du type de question
-
           const isCorrect = validerReponse(question, reponse.trim());
           if (isCorrect) {
-            if(question.type === "Question Ouverte") {
-              console.log("Question Ouverte, pas de bonne réponse prédéfinie")
-            }
-            else {
+            if (question.type === "Question Ouverte") {
+              console.log("Question Ouverte, pas de bonne réponse prédéfinie");
+            } else {
               console.log("✅ Bonne réponse !");
             }
 
@@ -284,12 +295,14 @@ function simulerPassation(rl, callbackMenu) {
           }
 
           currentQuestionIndex++;
-          askQuestion();
-        });
-      } else {
-        afficherResultats();
-      }
+          askQuestion(); // Passer à la question suivante
+        }
+      });
+    } else {
+      afficherResultats();
     }
+  }
+
 
     // Fonction pour afficher une question selon son type
 function afficherQuestion(question) {
