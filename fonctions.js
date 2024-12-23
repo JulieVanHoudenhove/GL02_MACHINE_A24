@@ -65,18 +65,29 @@ function afficherResultats(resultats, rl, callbackMenu) {
             console.log(question.contenu);
 
             rl.question(
-              "\nVoulez-vous ajouter cette question à l'examen ? (oui/non) : ",
-              (reponse) => {
-                if (reponse.toLowerCase() === "oui") {
-                  questionsSelectionnees.push(question);
-                  fs.writeFileSync(
-                    "./temp_examen.json",
-                    JSON.stringify(questionsSelectionnees, null, 2),
-                  );
-                  console.log("\nQuestion ajoutée à l'examen !");
+                "\nVoulez-vous ajouter cette question à l'examen ? (oui/non) : ",
+                (reponse) => {
+                  if (reponse.toLowerCase() === "oui") {
+                    // Vérifier si la question existe déjà
+                    const existeDeja = questionsSelectionnees.some(
+                        (q) => q.titre === question.titre
+                    );
+
+                    if (existeDeja) {
+                      console.log(
+                          "\nCette question fait déjà partie de l'examen en cours de création, veuillez sélectionner une autre question."
+                      );
+                    } else {
+                      questionsSelectionnees.push(question);
+                      fs.writeFileSync(
+                          "./temp_examen.json",
+                          JSON.stringify(questionsSelectionnees, null, 2)
+                      );
+                      console.log("\nQuestion ajoutée à l'examen !");
+                    }
+                  }
+                  callbackMenu();
                 }
-                callbackMenu();
-              },
             );
           } else {
             console.log("\nOption invalide.");
@@ -261,30 +272,38 @@ function simulerPassation(rl, callbackMenu) {
 
     // Fonction pour poser une question
     function askQuestion() {
-
       if (currentQuestionIndex < questions.length) {
         const question = questions[currentQuestionIndex];
         afficherQuestion(question);
 
         rl.question("\nVotre réponse : ", (reponse) => {
-          // Validation de la réponse en fonction du type de question
-
-          const isCorrect = validerReponse(question, reponse.trim());
-          if (isCorrect) {
-            if(question.type === "Question Ouverte") {
-              console.log("Question Ouverte, pas de bonne réponse prédéfinie")
-            }
-            else {
-              console.log("✅ Bonne réponse !");
-            }
-
-            correctAnswers++;
+          if (reponse.trim() === "") {
+            // Si l'utilisateur n'entre rien
+            console.log(
+                "⚠️ Attention, vous n’avez pas répondu à cette question. Voulez-vous continuer sans répondre ? (oui/non)"
+            );
+            rl.question("\nVotre choix : ", (choix) => {
+              if (choix.toLowerCase() === "oui") {
+                currentQuestionIndex++;
+                askQuestion();
+              } else {
+                askQuestion(); // Reposer la même question
+              }
+            });
           } else {
-            console.log(`❌ Mauvaise réponse. La bonne réponse était : ${getBonneReponse(question)}`);
+            // Validation de la réponse en fonction du type de question
+            const isCorrect = validerReponse(question, reponse.trim());
+            if (isCorrect) {
+              console.log("✅ Bonne réponse !");
+              correctAnswers++;
+            } else {
+              console.log(
+                  `❌ Mauvaise réponse. La bonne réponse était : ${getBonneReponse(question)}`
+              );
+            }
+            currentQuestionIndex++;
+            askQuestion();
           }
-
-          currentQuestionIndex++;
-          askQuestion();
         });
       } else {
         afficherResultats();
