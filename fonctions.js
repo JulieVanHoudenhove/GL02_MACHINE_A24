@@ -843,18 +843,21 @@ function generateHistogram(profile) {
 
 // Fonction pour générer le contenu de la VCard (à adapter selon les besoins)
 function generateVCardContent(contact) {
+  // Séparer les champs de l'adresse
+  const [rue, codePostal, ville, pays] = contact.adressePerso.split(";");
+
   return `BEGIN:VCARD
-NOM ${contact.nom}
-PRENOM ${contact.prenom}
+N:${contact.nom}
 FN:${contact.prenom} ${contact.nom}
 EMAIL:${contact.email}
-TEL;WORK:${contact.telephonePro}
-TEL;HOME:${contact.telephonePerso}
-ADR;HOME:${contact.adressePerso}
+TEL:WORK:${contact.telephonePro}
+TEL:HOME:${contact.telephonePerso}
+ADR:HOME:${rue};${ville};;${codePostal};${pays}
 ORG:${contact.lieuTravail}
-TEL;WORK:${contact.bureau}
+ROOM:${contact.bureau}
 END:VCARD`;
 }
+
 
 function nettoyerCorrespondances(reponses) {
   return reponses.map((item) => ({
