@@ -98,7 +98,13 @@ function afficherResultats(resultats, rl, callbackMenu) {
     );
   } else {
     console.log("\nAucune question ne correspond aux critères.");
-    callbackMenu();
+    rl.question("\nEntrez un nouveau mot-clé pour relancer la recherche : ", (nouveauMotCle) => {
+      const questions = chargerDossier("./questions");
+      const resultats = questions.filter((q) =>
+          q.enonce.toLowerCase().includes(nouveauMotCle.toLowerCase())
+      );
+      afficherResultats(resultats, rl, callbackMenu); // Relancer avec le nouveau mot-clé
+    });
   }
 }
 
