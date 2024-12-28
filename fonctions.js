@@ -277,51 +277,51 @@ function simulerPassation(rl, callbackMenu) {
     let correctAnswers = 0;
 
   // Fonction pour poser une question
-  function askQuestion() {
-    if (currentQuestionIndex < questions.length) {
-      const question = questions[currentQuestionIndex];
-      afficherQuestion(question);
+    function askQuestion() {
+      if (currentQuestionIndex < questions.length) {
+        const question = questions[currentQuestionIndex];
+        afficherQuestion(question);
 
-      rl.question("\nVotre réponse : ", (reponse) => {
-        if (reponse.trim() === "") {
-          // Avertir l'utilisateur qu'il n'a pas répondu
-          console.log("\n⚠️ Vous n'avez pas répondu à cette question.");
-          rl.question("Confirmez-vous que vous ne souhaitez pas répondre à cette question ? (Oui/Non) : ", (confirmation) => {
-            if (confirmation.toLowerCase() === "non") {
-              console.log("Veuillez entrer votre réponse.");
-              return askQuestion(); // Relancer la question
-            }
+        rl.question("\nVotre réponse : ", (reponse) => {
+          if (reponse.trim() === "") {
+            // Avertir l'utilisateur qu'il n'a pas répondu
+            console.log("\n⚠️ Vous n'avez pas répondu à cette question.");
+            rl.question(
+                "Confirmez-vous que vous ne souhaitez pas répondre à cette question ? (Oui/Non) : ",
+                (confirmation) => {
+                  if (confirmation.toLowerCase() === "non") {
+                    console.log("Veuillez entrer votre réponse.");
+                    return askQuestion(); // Relancer la question
+                  }
 
-            console.log("Réponse non fournie enregistrée comme incorrecte.");
-            currentQuestionIndex++;
-            askQuestion(); // Passer à la question suivante
-          });
-        } else {
-          // Validation de la réponse en fonction du type de question
-          const isCorrect = validerReponse(question, reponse.trim());
-          if (isCorrect) {
-            if (question.type === "Question Ouverte") {
-              console.log("Question Ouverte, pas de bonne réponse prédéfinie");
-            } else {
-              console.log("✅ Bonne réponse !");
-              correctAnswers++;
+                  console.log("Réponse non fournie enregistrée comme incorrecte.");
+                  currentQuestionIndex++;
+                  askQuestion(); // Passer à la question suivante
+                }
+            );
+          } else {
+            // Validation de la réponse en fonction du type de question
+            const isCorrect = validerReponse(question, reponse.trim());
+            if (isCorrect) {
+              if (question.type === "Question Ouverte") {
+                console.log("Question Ouverte, pas de bonne réponse prédéfinie");
+              } else {
+                console.log("✅ Bonne réponse !");
+                correctAnswers++;
+              }
             } else {
               console.log(
                   `❌ Mauvaise réponse. La bonne réponse était : ${getBonneReponse(question)}`
               );
             }
             currentQuestionIndex++;
-            askQuestion();
+            askQuestion(); // Passer à la question suivante
           }
-          currentQuestionIndex++;
-          askQuestion(); // Passer à la question suivante
-        }
-      });
-    } else {
-      afficherResultats();
+        });
+      } else {
+        afficherResultats();
+      }
     }
-  }
-
 
     // Fonction pour afficher une question selon son type
 function afficherQuestion(question) {
