@@ -65,18 +65,29 @@ function afficherResultats(resultats, rl, callbackMenu) {
             console.log(question.contenu);
 
             rl.question(
-              "\nVoulez-vous ajouter cette question à l'examen ? (oui/non) : ",
-              (reponse) => {
-                if (reponse.toLowerCase() === "oui") {
-                  questionsSelectionnees.push(question);
-                  fs.writeFileSync(
-                    "./temp_examen.json",
-                    JSON.stringify(questionsSelectionnees, null, 2),
-                  );
-                  console.log("\nQuestion ajoutée à l'examen !");
+                "\nVoulez-vous ajouter cette question à l'examen ? (oui/non) : ",
+                (reponse) => {
+                  if (reponse.toLowerCase() === "oui") {
+                    // Vérifier si la question existe déjà
+                    const existeDeja = questionsSelectionnees.some(
+                        (q) => q.titre === question.titre
+                    );
+
+                    if (existeDeja) {
+                      console.log(
+                          "\nCette question fait déjà partie de l'examen en cours de création, veuillez sélectionner une autre question."
+                      );
+                    } else {
+                      questionsSelectionnees.push(question);
+                      fs.writeFileSync(
+                          "./temp_examen.json",
+                          JSON.stringify(questionsSelectionnees, null, 2)
+                      );
+                      console.log("\nQuestion ajoutée à l'examen !");
+                    }
+                  }
+                  callbackMenu();
                 }
-                callbackMenu();
-              },
             );
           } else {
             console.log("\nOption invalide.");
@@ -87,7 +98,13 @@ function afficherResultats(resultats, rl, callbackMenu) {
     );
   } else {
     console.log("\nAucune question ne correspond aux critères.");
-    callbackMenu();
+    rl.question("\nEntrez un nouveau mot-clé pour relancer la recherche : ", (nouveauMotCle) => {
+      const questions = chargerDossier("./questions");
+      const resultats = questions.filter((q) =>
+          q.enonce.toLowerCase().includes(nouveauMotCle.toLowerCase())
+      );
+      afficherResultats(resultats, rl, callbackMenu); // Relancer avec le nouveau mot-clé
+    });
   }
 }
 
@@ -117,7 +134,7 @@ function verifierExamen(rl, callbackMenu) {
     questionsSelectionnees.length > 20
   ) {
     console.log(
-      `\nVotre examen doit contenir entre 15 et 20 questions. Actuellement : ${questionsSelectionnees.length}`,
+      `\nVotre examen ne contient pas entre 15 et 20 questions, veuillez corriger cela. Actuellement : ${questionsSelectionnees.length}`,
     );
     modifierQuestions(rl, callbackMenu);
     return;
@@ -127,7 +144,7 @@ function verifierExamen(rl, callbackMenu) {
   const titres = new Set();
   for (const question of questionsSelectionnees) {
     if (titres.has(question.titre)) {
-      console.log(`\nDoublon détecté : ${question.titre}`);
+      console.log(`\nAu moins une question est en double, veuillez vérifier vos données. Doublon détecté: ${question.titre}`);
       modifierQuestions(rl, callbackMenu);
       return;
     }
@@ -176,7 +193,7 @@ function sauvegarderExamen(cheminComplet, callbackMenu) {
     // Générer le fichier GIFT
     const giftData = questionsSelectionnees.map((q) => q.contenu).join("\n\n");
     fs.writeFileSync(cheminComplet, giftData);
-    console.log(`\nExamen GIFT créé avec succès : ${cheminComplet}`);
+    console.log(`\nVotre fichier a été généré avec succès : ${cheminComplet}`);
 
     // Supprimer le fichier temporaire après la création
     fs.unlinkSync("./temp_examen.json");
@@ -287,13 +304,15 @@ function simulerPassation(rl, callbackMenu) {
               console.log("Question Ouverte, pas de bonne réponse prédéfinie");
             } else {
               console.log("✅ Bonne réponse !");
+              correctAnswers++;
+            } else {
+              console.log(
+                  `❌ Mauvaise réponse. La bonne réponse était : ${getBonneReponse(question)}`
+              );
             }
-
-            correctAnswers++;
-          } else {
-            console.log(`❌ Mauvaise réponse. La bonne réponse était : ${getBonneReponse(question)}`);
+            currentQuestionIndex++;
+            askQuestion();
           }
-
           currentQuestionIndex++;
           askQuestion(); // Passer à la question suivante
         }
@@ -500,9 +519,15 @@ function comparerProfilExamen(rl, callbackMenu) {
 
     // Demander les chemins des fichiers GIFT de référence pour comparaison
     rl.question(
-        "Entrez les chemins des fichiers GIFT de référence (séparés par des virgules) : ",
+        "Entrez les chemins des fichiers GIFT de référence (séparés par des virgules, max 3) : ",
         (fichiers) => {
           const fichiersPaths = fichiers.split(",").map((f) => f.trim());
+
+          // Vérification du nombre de fichiers sélectionnés
+          if (fichiersPaths.length > 3) {
+            console.log("\nErreur : Vous ne pouvez comparer qu'un maximum de 3 fichiers.");
+            return comparerProfilExamen(rl, callbackMenu); // Relancer la sélection en cas d'erreur
+          }
 
           // Charger les questions de référence à partir des fichiers GIFT
           const referenceQuestions = fichiersPaths.flatMap((chemin) => {
@@ -537,6 +562,7 @@ function comparerProfilExamen(rl, callbackMenu) {
     );
   });
 }
+
 
 // Fonction pour charger les examens depuis un dossier
 function chargerExam(dossier) {
@@ -616,7 +642,7 @@ function identification(rl, callbackMenu) {
 function askNom(rl, contact, callbackMenu) {
   rl.question("Entrez votre nom : ", (nom) => {
     if (!nom) {
-      console.log("Le nom ne peut pas être vide.");
+      console.log("Le nom ne peut pas être vide. Veuillez compléter les informations manquantes.");
       return askNom(rl, contact, callbackMenu); // Redemander le nom uniquement
     }
     contact.nom = nom;
@@ -628,7 +654,7 @@ function askNom(rl, contact, callbackMenu) {
 function askPrenom(rl, contact, callbackMenu) {
   rl.question("Entrez votre prénom : ", (prenom) => {
     if (!prenom) {
-      console.log("Le prénom ne peut pas être vide.");
+      console.log("Le prénom ne peut pas être vide. Veuillez compléter les informations manquantes.");
       return askPrenom(rl, contact, callbackMenu); // Redemander le prénom uniquement
     }
     contact.prenom = prenom;
@@ -641,7 +667,7 @@ function askEmail(rl, contact, callbackMenu) {
   rl.question("Entrez votre email : ", (email) => {
     const emailRegex = /^[a-zA-Z0-9._-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,6}$/;
     if (!emailRegex.test(email)) {
-      console.log("L'email fourni n'est pas valide.");
+      console.log("L'email fourni n'est pas valide.Veuillez compléter les informations manquantes.");
       return askEmail(rl, contact, callbackMenu); // Redemander l'email uniquement
     }
     contact.email = email;
@@ -692,7 +718,7 @@ function askAdressePerso(rl, contact, callbackMenu) {
       const adresseRegex = /^[^;]+;[^;]+;[^;]+;[^;]+$/;
       if (!adresseRegex.test(adressePerso)) {
         console.log(
-          "L'adresse fournie n'est pas valide. Le format attendu est : rue;code postal;ville;pays",
+          "L'adresse fournie n'est pas valide. Le format attendu est : rue;code postal;ville;pays. \n Veuillez compléter les informations manquantes.",
         );
         return askAdressePerso(rl, contact, callbackMenu); // Redemander l'adresse uniquement
       }
@@ -706,7 +732,7 @@ function askAdressePerso(rl, contact, callbackMenu) {
 function askLieuTravail(rl, contact, callbackMenu) {
   rl.question("Entrez le lieu de travail : ", (lieuTravail) => {
     if (!lieuTravail) {
-      console.log("Le lieu de travail ne peut pas être vide.");
+      console.log("Le lieu de travail ne peut pas être vide. \n Veuillez compléter les informations manquantes.");
       return askLieuTravail(rl, contact, callbackMenu); // Redemander le lieu de travail uniquement
     }
     contact.lieuTravail = lieuTravail;
@@ -718,7 +744,7 @@ function askLieuTravail(rl, contact, callbackMenu) {
 function askBureau(rl, contact, callbackMenu) {
   rl.question("Entrez votre numéro de bureau : ", (bureau) => {
     if (!bureau) {
-      console.log("Le numéro de bureau ne peut pas être vide.");
+      console.log("Le numéro de bureau ne peut pas être vide. \n Veuillez compléter les informations manquantes.");
       return askBureau(rl, contact, callbackMenu); // Redemander le bureau uniquement
     }
     contact.bureau = bureau;
@@ -831,18 +857,21 @@ function generateHistogram(profile) {
 
 // Fonction pour générer le contenu de la VCard (à adapter selon les besoins)
 function generateVCardContent(contact) {
+  // Séparer les champs de l'adresse
+  const [rue, codePostal, ville, pays] = contact.adressePerso.split(";");
+
   return `BEGIN:VCARD
-NOM ${contact.nom}
-PRENOM ${contact.prenom}
+N:${contact.nom}
 FN:${contact.prenom} ${contact.nom}
 EMAIL:${contact.email}
-TEL;WORK:${contact.telephonePro}
-TEL;HOME:${contact.telephonePerso}
-ADR;HOME:${contact.adressePerso}
+TEL:WORK:${contact.telephonePro}
+TEL:HOME:${contact.telephonePerso}
+ADR:HOME:${rue};${ville};;${codePostal};${pays}
 ORG:${contact.lieuTravail}
-TEL;WORK:${contact.bureau}
+ROOM:${contact.bureau}
 END:VCARD`;
 }
+
 
 function nettoyerCorrespondances(reponses) {
   return reponses.map((item) => ({
