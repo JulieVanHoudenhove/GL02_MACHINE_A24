@@ -1,11 +1,10 @@
 BEGIN:VCARD
-NOM Amiche
-PRENOM Willen
-FN:Willen Amiche
-EMAIL:willen.amiche@gmail.com
-TEL;WORK:+33695607728
-TEL;HOME:+33607446460
-ADR;HOME:4;77186;Noisiel;France
-ORG:Noisiel
-TEL;WORK:401
+N:TORREILLES
+FN:Théo TORREILLES
+EMAIL:theo.torreilles@utt.fr
+TEL:WORK:+33123456789
+TEL:HOME:+33678901234
+ADR:HOME:10 Rue des Fleurs;Paris;;75000;France
+ORG:Université de Technologie de Troyes
+ROOM:X007
 END:VCARD
