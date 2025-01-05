@@ -65,43 +65,45 @@ function afficherResultats(resultats, rl, callbackMenu) {
             console.log(question.contenu);
 
             rl.question(
-                "\nVoulez-vous ajouter cette question à l'examen ? (oui/non) : ",
-                (reponse) => {
-                  if (reponse.toLowerCase() === "oui") {
-                    // Vérifier si la question existe déjà
-                    const existeDeja = questionsSelectionnees.some(
-                        (q) => q.titre === question.titre
-                    );
+              "\nVoulez-vous ajouter cette question à l'examen ? (oui/non) : ",
+              (reponse) => {
+                if (reponse.toLowerCase() === "oui") {
+                  // Vérifier si la question existe déjà
+                  const existeDeja = questionsSelectionnees.some(
+                    (q) => q.titre === question.titre
+                  );
 
-                    if (existeDeja) {
-                      console.log(
-                          "\nCette question fait déjà partie de l'examen en cours de création, veuillez sélectionner une autre question."
-                      );
-                    } else {
-                      questionsSelectionnees.push(question);
-                      fs.writeFileSync(
-                          "./temp_examen.json",
-                          JSON.stringify(questionsSelectionnees, null, 2)
-                      );
-                      console.log("\nQuestion ajoutée à l'examen !");
-                    }
+                  if (existeDeja) {
+                    console.log(
+                      "\nCette question fait déjà partie de l'examen en cours de création, veuillez sélectionner une autre question."
+                    );
+                  } else {
+                    questionsSelectionnees.push(question);
+                    fs.writeFileSync(
+                      "./temp_examen.json",
+                      JSON.stringify(questionsSelectionnees, null, 2)
+                    );
+                    console.log("\nQuestion ajoutée à l'examen !");
                   }
-                  callbackMenu();
                 }
+
+                // Retour à la liste des résultats après le choix
+                afficherResultats(resultats, rl, callbackMenu);
+              }
             );
           } else {
             console.log("\nOption invalide.");
-            callbackMenu();
+            afficherResultats(resultats, rl, callbackMenu); // Retour à la liste
           }
         }
-      },
+      }
     );
   } else {
     console.log("\nAucune question ne correspond aux critères.");
     rl.question("\nEntrez un nouveau mot-clé pour relancer la recherche : ", (nouveauMotCle) => {
       const questions = chargerDossier("./questions");
       const resultats = questions.filter((q) =>
-          q.enonce.toLowerCase().includes(nouveauMotCle.toLowerCase())
+        q.enonce.toLowerCase().includes(nouveauMotCle.toLowerCase())
       );
       afficherResultats(resultats, rl, callbackMenu); // Relancer avec le nouveau mot-clé
     });
