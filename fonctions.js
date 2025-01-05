@@ -757,25 +757,30 @@ function generateVCard(rl, contact, callbackMenu) {
   // Générer le contenu de la VCard
   const vcardContent = generateVCardContent(contact);
 
-  // Demander où sauvegarder le fichier VCard
-  rl.question(
-    "Entrez le chemin où sauvegarder la fiche contact (ex : ./contact.vcf) : ",
-    (cheminFichier) => {
-      try {
-        // Sauvegarder la VCard dans un fichier
-        fs.writeFileSync(cheminFichier, vcardContent);
-        console.log("La fiche contact a été générée avec succès.");
-      } catch (error) {
-        console.error(
-          "Erreur lors de la sauvegarde du fichier : ",
-          error.message,
-        );
+  // Fonction récursive pour demander un chemin valide
+  function askForValidPath() {
+    rl.question(
+      "Entrez le chemin où sauvegarder la fiche contact (ex : ./contact.vcf) : ",
+      (cheminFichier) => {
+        try {
+          // Tenter de sauvegarder la VCard dans un fichier
+          fs.writeFileSync(cheminFichier, vcardContent);
+          console.log("La fiche contact a été générée avec succès.");
+          // Retour au menu principal après une sauvegarde réussie
+          callbackMenu();
+        } catch (error) {
+          console.error(
+            `Le chemin "${cheminFichier}" n'est pas valide ou accessible. Veuillez entrer un chemin correct.`
+          );
+          // Relancer la demande de chemin en cas d'erreur
+          askForValidPath();
+        }
       }
+    );
+  }
 
-      // Retour au menu principal
-      callbackMenu();
-    },
-  );
+  // Lancer la demande initiale de chemin
+  askForValidPath();
 }
 
 // Function pour analyser le profil d'un examen
