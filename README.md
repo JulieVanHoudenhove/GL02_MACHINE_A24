@@ -135,6 +135,7 @@ Ce projet a été conçu et développé par :
 * Julie Van Houdenhove
 * Théo Torreilles
 * Lucie Guérin
+
 Sur la base du travail initial disponible sur le [dépôt original](https://github.com/SAMY-EH/GL02_MACHINE_A24)
 
 ## Contribution
@@ -143,6 +144,7 @@ Pour contribuer au projet :
 - Forkez le dépôt.
 - Créez une branche pour votre fonctionnalité ou correctif.
 - Soumettez une Pull Request avec une description claire des modifications.
+
 Pour toute question, consultez la section [Issues](https://github.com).
 
 ## Licence
