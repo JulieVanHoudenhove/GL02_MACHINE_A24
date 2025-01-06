@@ -14,38 +14,38 @@ Cet utilitaire en ligne de commande est conçu pour faciliter la gestion des exa
 
 ### **2. Création d'Examen**
 - **Sélection manuelle :** Choisissez les questions qui composeront l'examen.
-- **Vérification automatique :** 
-  - Conformité au critère de 15-20 questions.  
-  - Détection et prévention des doublons.  
+- **Vérification automatique :**
+  - Conformité au critère de 15-20 questions.
+  - Détection et prévention des doublons.
 - **Sauvegarde :** Exportez l'examen au format GIFT, prêt à être utilisé dans des plateformes éducatives.
 
 ### **3. Identification**
-- **Création de fiches contact :** Collectez et enregistrez les informations des utilisateurs.  
-- **Génération de VCard :** Exportez les données au format standard `.vcf`.  
+- **Création de fiches contact :** Collectez et enregistrez les informations des utilisateurs.
+- **Génération de VCard :** Exportez les données au format standard `.vcf`.
 - **Validation des données :** Assurez-vous que toutes les informations saisies sont correctes et complètes.
 
 ### **4. Simulation d'Examen**
-- **Passation test :** Réalisez une simulation pour tester un examen.  
-- **Évaluation des réponses :** Fournissez des retours immédiats sur les bonnes et mauvaises réponses.  
+- **Passation test :** Réalisez une simulation pour tester un examen.
+- **Évaluation des réponses :** Fournissez des retours immédiats sur les bonnes et mauvaises réponses.
 - **Calcul des scores :** Obtenez un score final pour évaluer les performances.
 
 ### **5. Analyse de Profil d'Examen**
-- **Statistiques détaillées :** Analysez la répartition des types de questions dans l'examen.  
-- **Génération de graphiques :** Visualisez les données sous forme d'histogrammes clairs.  
+- **Statistiques détaillées :** Analysez la répartition des types de questions dans l'examen.
+- **Génération de graphiques :** Visualisez les données sous forme d'histogrammes clairs.
 - **Comparaison :** Comparez les statistiques entre plusieurs examens pour identifier les écarts et tendances.
 
 ---
 
 ## Prérequis
-Avant d'utiliser l'application, assurez-vous d'avoir installé :  
-- **Node.js** : [Télécharger Node.js](https://nodejs.org/).  
+Avant d'utiliser l'application, assurez-vous d'avoir installé :
+- **Node.js** : [Télécharger Node.js](https://nodejs.org/).
 - **npm** : Gestionnaire de paquets Node.js.
 
 ---
 
 ## Installation
 
-Clonez le dépôt et installez les dépendances :  
+Clonez le dépôt et installez les dépendances :
 ```bash
 # Cloner le dépôt
 git clone https://github.com/JulieVanHoudenhove/GL02_MACHINE_A24
