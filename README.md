@@ -61,7 +61,7 @@ npm install
 
 ## Utilisation
 
-Lancez l'application avec la commande :
+Lancer l'application avec la commande :
 ```bash
 node main.js
 ```
