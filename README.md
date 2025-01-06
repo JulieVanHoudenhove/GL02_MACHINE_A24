@@ -1,4 +1,4 @@
-# Utilitaire de Gestion d'Examens GIFT
+# Gestion de Tests pour le SRYEM
 
 ## Description
 Cet utilitaire en ligne de commande est conçu pour faciliter la gestion des examens au format GIFT. Il offre une gamme complète de fonctionnalités adaptées aux besoins des enseignants et des gestionnaires, allant de la création d'examens à leur analyse statistique.
